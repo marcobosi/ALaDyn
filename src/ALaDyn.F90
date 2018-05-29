@@ -28,18 +28,15 @@
  use pic_evolve_in_time
  use pic_out_util
  use read_input
- use pdf_moments
- use pwfa_output_addons
  use system_utilities
  use code_util
-
  implicit none
 
- integer  :: last_iter,ngout
- logical  :: Diag
+ integer :: last_iter,ngout,iter_max
+ logical :: Diag
  real(dp) :: tdia,dtdia,tout,dtout,tstart,mem_max_addr
  real(dp) :: dt_loc
- integer  :: t_ind,ic,tk_ind
+ integer :: t_ind,ic,tk_ind
 
  mem_psize_max=0.0
  mem_max_addr=0.0
@@ -47,6 +44,8 @@
 
  call start
 
+ !omp parallel
+ !omp single default(private)
  call cpu_time(unix_time_now)
  unix_time_begin=unix_time_now
  unix_time_last_dump=unix_time_begin
@@ -54,7 +53,7 @@
  tnow=tstart
  ! iter=last_iter
  iter=0
- call diag_part_dist
+ !call diag_part_dist
 
  select case(mod_ord)
  case(1)
@@ -64,8 +63,9 @@
  case(3)
   call BUNCH_cycle
  end select
-
- call timing
+ !omp end single
+ !omp end parallel
+ !call timing
  call mpi_barrier(comm,error)
  call final_run_info
  call end_parallel
@@ -84,6 +84,7 @@
   call initial_tparticles_select(spec(1),dt,txmin,txmax,tymin,tymax,tzmin,tzmax)
   call t_particles_collect(spec(1),tk_ind)
  endif
+
  call data_out(jump)
  dt_loc=dt
  t_ind=0
@@ -102,7 +103,6 @@
  do while (tnow < tmax)
 
   call LP_run(tnow,dt_loc,iter,LPf_ord)
-
   if(P_tracking)then
    if(mod(iter,tkjump)==0)then
     tk_ind=tk_ind+1
@@ -132,7 +132,7 @@
   call t_particles_collect(spec(1),tk_ind)
  endif
  call data_out(jump)
- dt_loc=dt
+!================
  tk_ind=0
  if(Ionization)then
   !lp_max=1.2*oml*a0
@@ -142,6 +142,7 @@
   if(Pe0) call Ioniz_data(lp_max,ion_min,atomic_number,ionz_lev,ionz_model)
  endif
  do while (tnow < tmax)
+
   call ENV_run(tnow,dt_loc,iter,LPf_ord)
 
   if(P_tracking)then
@@ -151,14 +152,14 @@
    endif
   endif
 
-  call timing
+  call timing           !iter=iter+1  tnow=tnow+dt_loc
   call data_out(jump)
 
   if (ier /= 0) then
    call error_message
    exit
   endif
-  if (tnow+dt_loc >= tmax) dt_loc=tmax-tnow
+                          !if (tnow+dt_loc >= tmax) dt_loc=tmax-tnow
  end do
  if (dump>0) call dump_data(iter,tnow)
  end subroutine ENV_cycle
@@ -167,9 +168,9 @@
 
  subroutine BUNCH_cycle
 
- if(L_intdiagnostics_pwfa) then
-  call bunch_output_struct(tdia,dtdia,tout,dtout)
- endif
+ !if(L_intdiagnostics_pwfa) then
+  !call bunch_output_struct(tdia,dtdia,tout,dtout)
+ !endif
  call bdata_out(jump)
  dt_loc=dt
  t_ind=0
@@ -185,9 +186,9 @@
   call BUNCH_run(tnow,dt_loc,iter)
 
   call timing
-  if(L_intdiagnostics_pwfa) then
-   call bunch_output_struct(tdia,dtdia,tout,dtout)
-  endif
+  !if(L_intdiagnostics_pwfa) then
+   !call bunch_output_struct(tdia,dtdia,tout,dtout)
+  !endif
   call bdata_out(jump)
 
   if (ier /= 0) then
@@ -229,21 +230,21 @@
 !==================
   if(nvout>0)then
    if (mod_ord==2) then
-    if(L_env_modulus)then
+    !if(L_env_modulus)then
      i=0
      call env_fields_out(env,tnow,i,jump)
-     if(Two_color)call env_fields_out(env1,tnow,-1,jump)
-    else
+     if(Two_color)call env_fields_out(env1,tnow,-1,jump)    !EXIT |A|
+    !else
      if(Two_color)then
       do i=1,2
        call env_two_fields_out(env,env1,tnow,i,jump)
       end do
      else
       do i=1,2
-       call env_fields_out(env,tnow,i,jump)
+       call env_fields_out(env,tnow,i,jump)     !EXIT [Ar,Ai]
       end do
      endif
-    endif
+    !endif
    endif
    do i=1,nvout
     if(L_force_singlefile_output) then
@@ -262,7 +263,7 @@
    enddo
    if(nden > 2)then
     call set_wake_potential
-    call den_energy_out(tnow,0,nden,1,jump)  !data on jc(1) for wake potential
+    call den_energy_out(tnow,0,nden,1,jump)  !data on jc(1) for wake potential 
    endif
   endif
   if(Hybrid)then
@@ -280,6 +281,10 @@
      call part_pdata_out(tnow,xp0_out,xp1_out,yp_out,i,pjump)
     end do
    endif
+  endif
+  if (pe0) then
+   write(6,'(a10,i6,a10,e11.4,a10,e11.4)') 'iter = ',iter,' t = ',tnow,' dt = ',dt_loc
+   write(6,*)' END DATA WRITE'
   endif
   if (dump>0 .and. time_interval_dumps < 0.0) then
    if (iter>0) call dump_data(iter,tnow)
@@ -344,22 +349,16 @@
      call fields_out_new(ebf,tnow,i,i,jump)
     endif
    end do
-
-   if      (L_print_J_on_grid .AND. L_force_singlefile_output) then
-     call fields_out(jc,tnow,1,0,jump)     ! 0 for Jx current
-   else if  (L_print_J_on_grid .AND. L_force_singlefile_output) then
-     call fields_out_new(jc,tnow,1,0,jump) ! 0  to label Jx field
-   endif
-
    do i=1,nbfield
-    if(L_force_singlefile_output) then
-     call bfields_out(ebf_bunch,ebf1_bunch,tnow,i,jump)
-    else
-     call fields_out_new(ebf_bunch,tnow,i,i+6,jump)
-    endif
+    call bfields_out(ebf_bunch,ebf1_bunch,tnow,i,jump)
    end do
   endif
   if(nden>0)then
+   if(Hybrid)then
+    do i=1,nfcomp
+     call fluid_den_mom_out(up,tnow,i,nfcomp,jump)
+    end do
+   endif
    ic=0
    call prl_bden_energy_interp(ic)
    call bden_energy_out(tnow,1,jump)
@@ -372,7 +371,7 @@
    enddo
    if(nden>2)then
     call set_wake_potential
-    call den_energy_out(tnow,0,nden,1,jump)  !data on jc(1) for wake potential
+    call den_energy_out(tnow,0,nden,1,jump)  !data on jc(1) for wake potential 
    endif
   endif
   if(nbout> 0)then
@@ -392,6 +391,10 @@
      end do
     endif
    endif
+  endif
+  if (pe0) then
+   write(6,'(a10,i6,a10,e11.4,a10,e11.4)') 'iter = ',iter,' t = ',tnow,' dt = ',dt_loc
+   write(6,*)' END B-DATA WRITE'
   endif
   if(dump>0 .and. time_interval_dumps < 0.)then
    if(iter>0)call dump_data(iter,tnow)
@@ -505,21 +508,30 @@
  end subroutine error_message
 
  !---------------------------
+ subroutine check_grid_size
+  if(mod(nx,2)/=0)then
+   write(6,*)' Wrong x dimension'
+   stop
+  endif
+  if(ny==0)then
+   write(6,*)' Wrong y dimension'
+   stop
+  endif
+  if(ny>1)then
+   if(mod(ny,2)/=0)then
+    write(6,*)' Wrong y dimension'
+    stop
+   endif
+  endif
+ end subroutine check_grid_size
+
 
  subroutine start
 
  integer :: nxp,nyp,nzp,ns_ioniz
- real(dp), parameter :: opt_der=1.0
-
- !enable loop to attach with gdb only if really needed
- !WARNING if enabled without needed, the program sleeps at start without doing anything!
-#ifdef ENABLE_GDB_ATTACH
- call gdbattach
-#endif
 
  !Read parameters from input.nml file
  call read_main_input
- call read_nml_integrated_background_diagnostic
  if (model_id > 4) then
   call read_bunch_namelist
   call read_bunch_TWISS_namelist
@@ -617,6 +629,8 @@
   ! in general data (nouts+1 times)
   dtout=(tmax-tstart)/nouts
   dtdia=(tmax-tstart)/iene
+  iter_max=tmax/dt
+  dt_loc=tmax/float(iter_max)
 
  case (1) ! reads from dump evolved data
   if (.not.L_first_output_on_restart) then
@@ -632,9 +646,11 @@
    write(6,*)' Dump data read completed'
   endif
   call set_fxgrid(npe_xloc,sh_ix)
+  iter_max=tmax/dt
+  dt_loc=tmax/float(iter_max)
+  dtout=tmax/nouts
+  dtdia=tmax/iene
   tmax=tmax+tstart
-  dtout=(tmax-tstart)/nouts
-  dtdia=(tmax-tstart)/iene
   if(.not.L_first_output_on_restart) then
    tdia=tstart+dtdia
    tout=tstart+dtout
@@ -644,6 +660,14 @@
   endif
 
  end select
+!===================
+  if(Pe0)then
+   write(6,*)'time step resetting:' 
+   write(6,*)'  new ',dt_loc,'  old ',dt
+   write(6,*)'tot iterations ',iter_max
+   write(6,*)'tot time ',iter_max*dt_loc
+  endif
+!========================
 
  if(Part)then
   if(prl)then
@@ -667,13 +691,13 @@
  write(10,*)'nsp_ionz-1,zlev,zmod,N_ge '
  write(10,'(4i8)')nsp_ionz-1,zlev,zmod,N_ge
  write(10,*)'  Max Ef       dt      Omega_au  '
- write(10,'(3E11.4)')Ef_max,dt_fs,omega_a
+ write(10,'(3E11.4)')Ef_max,dt_fs,omega_a    
  if(Two_color)then
  write(10,*)' a0        lam0,      om0,      a1,      lam1,         om1'
- write(10,'(6E11.4)')a0,lam0,oml,a1,lam1,om1
+ write(10,'(6E11.4)')a0,lam0,oml,a1,lam1,om1   
  else
  write(10,*)' a0        lam0,      om0'
- write(10,'(6E11.4)')a0,lam0,oml
+ write(10,'(6E11.4)')a0,lam0,oml   
  endif
  do ic=1,nsp_ionz-1
   write(10,*)' z0,     zmax'
@@ -935,18 +959,18 @@
   else
    write(60,*)' Current components: [Jx,Jyi,Jz] '
    write(60,*)' Field components: [Ex,Ey,Ez,Bx,By,Bz] '
- endif
+  endif
   write(60,*)'   Box sizes'
   write(60,*)'     xmin,      xmax     '
   write(60,'(a1,2e11.4)')' ',xmin,xmax
- if (ndim > 1) then
+  if (ndim > 1) then
    write(60,*)'    ymin       ymax     '
    write(60,'(a1,2e11.4)')' ',ymin,ymax
-  if (ndim > 2) then
+   if (ndim > 2) then
     write(60,*)'    zmin       zmax     '
     write(60,'(a1,2e11.4)')' ',zmin,zmax
+   endif
   endif
- endif
   write(60,*)'   Cell sizes'
   if(ndim <3)then
    write(60,'(a6,e11.4,a6,e11.4)')'  Dx =',dx,'  Dy =',dy
@@ -1020,7 +1044,7 @@
   write(60,'(a13,e13.3,a10)')'  Intensity= ',lp_intensity,'(e18W/cm2)'
   write(60,'(a9,e13.3,a4)')'  Power = ',lp_pow,'(TW)'
   write(60,'(a10,e13.3,a3)')'  Energy= ',lp_energy,'(J)'
-  write(60,'(a30,i4)')'  Number of main laser pulses= ',nb_laser
+  write(60,'(a30,i4)')'  Number of main laser pulses= ',nb_laser 
   if(nb_laser >1)write(60,'(a29,f5.2)')'  Distance among lp centers= ',lp_delay
   write(60,*)'-----------------------------------'
   if(Two_color)then
@@ -1062,23 +1086,24 @@
    write(60,*)' Initial ion thermal speed V_T/c'
    write(60,'(a2,1E12.4)')'  ',t0_pl(i)
   end do
-   endif
+ endif
  write(60,*)'-----------------------------------'
-   if(Ionization)then
+ if(Ionization)then
   write(60,*)' Field ionization model:'
   if(ionz_model==1)write(60,*)' W_DC ADK  '
   if(ionz_model==2)write(60,*)' W_AC= <W_DC>  ADK '
   if(ionz_model==4)write(60,*)' W_AC ADK +BSI '
   if(Beam)write(60,'(a24,e11.4,a6)')'  Reference max E_field ',eb_max,'(TV/m)'
   if(Lp_active)write(60,'(a24,e11.4,a6)')'  Reference max E_field ',lp_max,'(TV/m)'
-    do i=1,nsp_ionz-1
+  do i=1,nsp_ionz-1
    write(60,*)' Ionization active on ion species:',species_name(atomic_number(i))
-    end do
-   end if
+  end do
+ end if
  write(60,*)'**********TARGET PLASMA PARAMETERS***********'
-  if(Part)then
+  if(n0_ref>0.)then
    write(60,'(a26,e11.4,a10)')'  Electron number density ',n0_ref,'[10^18/cc]'
    write(60,'(a21,f5.2)')'  Plasma wavelength= ',lambda_p
+   write(60,'(a20,e11.4)')' Chanelling fact  = ',chann_fact
    if(model_id < 5)then
     write(60,'(a20,f5.2,a10)')'  Critical density= ',ncrit,'[10^21/cc]'
     write(60,'(a18,e11.4,a4)')'  Critical power= ',P_c,'(TW)'
@@ -1106,7 +1131,7 @@
     end select
    endif
    if(Solid_target)then
-    select case(dmodel_id)
+   select case(dmodel_id)
     case(3)
      write(60,*)' Target preplasma-enabled '
      if(lpx(1)>0.0)write(60,'(a17,e11.4)')'  Preplasma size ',lpx(1)
@@ -1139,9 +1164,9 @@
      write(60,'(3e11.4)')lpy(1)+lpy(2),lpy(1),lpy(3)
      write(60,*)'Boundaries',ibx,iby
     end select
-   endif
+  endif
   write(60,*)'Fully kinetic PIC schemes'
- if(model_id >4)then
+  if(model_id >4)then
    write(60,*)'******Beam+plasma data *****************'
    write(60,*)' nbfield components',nbfield
    if(ibeam>0)then
@@ -1160,21 +1185,16 @@
     write(60,'(3e11.4)')rhob(i),bunch_charge(i),reduced_charge(i)
    end do
   else
-   write(60,*)' unit length is 1mm, unit density is n0=10^14/cc'
-   write(60,*)'  Lambda , Omega_p    n_over_n0  '
+   write(60,*)' unit length is 1mm, unit density is nc'
+   write(60,*)'  Lambda , Omega_p    n_over_nc  '
    write(60,'(3e11.4)')lambda_p,omega_p,n_over_nc
-   write(60,*)'  gamma   bet0        Lx       sigma_y,   eps_y       eps_z '
-   i=1
-   write(60,'(6e11.4)')gam(i),bet0,sxb(i),syb(i),epsy(i),epsz(i)
-   write(60,*)' jb_norm     nb_o_np    b_charge_den  '
-   write(60,'(3e11.4)')jb_norm(i),rhob(i),b_charge
   endif
   write(60,*)' target in  target_end'
   write(60,'(2e11.4)')targ_in,targ_end
   write(60,*)' ymin_t       ymax_t     '
   write(60,'(2e11.4)')ymin_t,ymax_t
   write(60,*)' Electron number per cell '
-  write(60,'(i4)')nref
+  write(60,'(i4)')mp_per_cell(1)
   write(60,*)' Particle density normalization  '
   write(60,'(e11.4)')j0_norm
  endif
