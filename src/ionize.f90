@@ -24,7 +24,6 @@
  use ionz_data
  use pic_rutil
  use util
-
  implicit none
   integer,allocatable :: el_ionz_count(:)
   real(dp),allocatable :: efp_aux(:,:)
@@ -39,13 +38,13 @@
  real(dp),allocatable :: aw(:,:)
  real(dp) :: p2,efact,avg_fact
  !=============================
- ! uses stored coefficients nstar(z,ic), vfact(z,ic),C_nstar(z,ic)
+         ! uses stored coefficients nstar(z,ic), vfact(z,ic),C_nstar(z,ic)
  ! ionz_model, ionz_lev,nsp_ionz z0=z_ion(), zmax=atn() in common
  !===============================
  Wi=0.0
  dge=E_max/real(N_ge,dp)
  d2ge=dge*dge
- de_inv=1./dge
+ de_inv=1./dge  
  deb_inv=de_inv/514.     !For fields in GV/m unit
  ic=loc_ion-1
  select case(nz_model)
@@ -83,7 +82,7 @@
    j=k-z0
    ns=2.*nstar(k,ic)-1.
    do i=1,N_ge
-    Ei=dge*real(i,dp)
+    Ei=dge*real(i,dp)        
     fact2=(2.*Vfact(k,ic)/Ei)
     fact1=(fact2)**ns
     fact1=fact1*sqrt(3.*Ei/(pig*Vfact(k,ic)))
@@ -165,9 +164,9 @@
  Wi=omega_a*Wi
  zm_loc=zm-z0
  if(nz_lev==1)then               ! one level ionization
-  !W_one_level(Ef,k=z0:zm,ic) P(k.k+1) ionization
+  !W_one_level(Ef,k=z0:zm,ic) P(k.k+1) ionization 
   !Wi(Ef,zk=1,zm-z0,ic) Rate of ionization zk+z0-1=> zk+z0
-  W_one_lev(0:N_ge,zm,ic)=0.0
+  W_one_lev(0:N_ge,zm,ic)=0.0 
   do z=0,zm_loc-1
    zk=z+1
    k=z+z0
@@ -250,11 +249,11 @@
  integer,intent(in) :: ic,np,new_np_el
  integer,intent(inout) :: np_el
  integer(sp) :: inc,id_ch
- real(dp) :: u,temp(3)
+ real :: u,temp(3)
 
  integer :: n,i,ii
  !========== Enter sp_field(n,1)= the rms momenta Delta*a (n) for env model
- !                 inc=ion_ch_inc(n) the number of ionization electrons
+ !                 inc=ion_ch_inc(n) the number of ionization electrons   
  id_ch=nd2+1
 
 !==========
@@ -307,16 +306,16 @@
 !=======================================
  subroutine env_ionization_electrons_inject(sp_field,ion_ch_inc,ic,np,np_el,new_np_el)
 
- real(dp),intent(in) :: sp_field(:,:)
+ real,intent(in) :: sp_field(:,:)
  integer,intent(in) :: ion_ch_inc(:)
  integer,intent(in) :: ic,np,new_np_el
  integer,intent(inout) :: np_el
  integer(sp) :: inc,id_ch
- real(dp) :: u,temp(3)
+ real :: u,temp(3)
 
  integer :: n,i,ii
  !========== Enter sp_field(n,1)= the rms momenta Delta*a (n) for env model
- !                 inc=ion_ch_inc(n) the number of ionization electrons
+ !                 inc=ion_ch_inc(n) the number of ionization electrons   
  id_ch=nd2+1
 
   temp(1)=t0_pl(1)
@@ -380,7 +379,7 @@
  integer :: n,nk,kk,z0
  integer :: kf,loc_inc,id_ch,sp_ion
  real(dp) :: energy_norm,ef_ion
-      !=====================
+ !=====================
  ! Units Ef_ion is in unit mc^2/e=2 MV/m
  ! Hence E0*Ef_ion, E0=0.51 is the electric field in MV/m
  ! The reference value in ADK formula is Ea= 1a.u. 0.514 MV/m,
@@ -412,13 +411,13 @@
     charge=charge+1
     ion_ch_inc(n)=1                !the ionization electron count
     z0=z0+1
-    sp_loc%part(n,id_ch)=wgh_cmp          !the new ion (id,z-chargei,wgh)
+    sp_loc%part(n,id_ch)=wgh_cmp          !the new ion (id,z-chargei,wgh) 
     ef_ion=1.5*amp_aux(n,1)/Vfact(z0,sp_ion)
     if(ef_ion >0.0)amp_aux(n,1)=sqrt(ef_ion)*amp_aux(n,2)!Delta*|A| on ion(n,ic)
     kk=kk+1
-     endif
+   endif
    !ion_ch_inc(n)=0 or 1
-    end do
+  end do
   new_np_el=kk
   !============= old ion charge stored in ebfp(id_ch)
  case(2)
@@ -473,7 +472,7 @@
  efp_aux(1:np,2)=sp_aux(1:np,id_ch-1)
 !=========================
 ! In efp_aux(n,1) is the ionizing field squared |E|^2 on ions n=1,np
-! For envelope model : in efp_aux(n,2) is the env |A| value on ions n=1,np
+! For envelope model : in efp_aux(n,2) is the env |A| value on ions n=1,np 
 !=========================
 
   do n=1,np
@@ -482,12 +481,12 @@
     ef_ion=sqrt(ef2_ion)
     nk=nint(def_inv*ef_ion)
     efp_aux(n,1)=ef_ion
-    el_ionz_count(n)=nk
+    el_ionz_count(n)=nk                
           !for each ion index n nk(n) is the ionizing fiels grid index
    endif
-   end do
+  end do
 !=====================
-! The ionizing field ef_ion=|E| discretized to a grid.
+! The ionizing field ef_ion=|E| discretized to a grid. 
 !            Ef(n)=nk*DE=nk*dge=nk/def_inv
 ! Grid index nk stored in el_ionz_count(n)
 !====================
@@ -516,7 +515,7 @@
      allocate(spec(1)%part(new_np_alloc,id_ch))
      do n=1,old_np_el
       spec(1)%part(n,1:id_ch)=ebfp(n,1:id_ch)
-  end do
+     end do
     endif
   else
    allocate(spec(1)%part(new_np_alloc,id_ch))
@@ -529,7 +528,7 @@
    call ionization_electrons_inject(el_ionz_count,ic,np,old_np_el,new_np_el)
    case(1)
    call env_ionization_electrons_inject(efp_aux,el_ionz_count,ic,np,old_np_el,new_np_el)
- end select
+   end select
   endif
  !Ionization energy to be added to the plasma particles current
  end subroutine ionization_cycle

@@ -29,10 +29,11 @@
  integer :: nx,ny,nz,nx_loc,nx1_loc,ny_loc,nz_loc,nx_alloc
  integer :: nxcell,nycell,nzcell,ny_targ,npty,nptz,nptx_max
  integer :: loc_npty(8),loc_nptz(8),nptx(8),loc_nptx(8),sptx_max(4),nxf,npt_buffer(4)
- integer :: nx_stretch,ny_stretch,nz_stretch
+ integer :: sh_targ,nx_stretch,ny_stretch,nz_stretch
  integer :: ibx,iby,ibz
  real(dp) :: k0,yx_rat,zx_rat,djc(3),lxb,lyb
  real(dp) :: ch_opt,fl_opt
+
  integer :: mp_per_cell(6),nref,nb_laser
  integer :: np_per_xc(Ref_nlayer),np_per_yc(Ref_nlayer),np_per_zc(Ref_nlayer),ppc(Ref_nlayer)
  integer :: ion_min(3),ion_max(3),atomic_number(3),ionz_lev,ionz_model
@@ -40,13 +41,13 @@
  real(dp) :: ratio_mpc(6),pavg_npart(4),wgh_ion
  real(dp) :: mass(4),mass_rat(4),charge_to_mass(4),unit_charge(4),Lorentz_fact(4)
  real(dp) :: mass_number(3)
- real(dp) :: n0_ref,pmass,ompe,vbeam,curr_max(3),t0_pl(4),j0_norm,ratio_mpfluid
+ real(dp) :: n0_ref,pmass,ompe,vbeam,curr_max(3),t0_pl(4),j0_norm,ratio_mpfluid,chann_fact
  real(dp) :: gam_min,gam0,bet0,u0_b, nb_over_np,b_charge
 
  real(dp) :: t0_lp,xc_lp,xf,w0_x,w0_y,lam0,a0
  real(dp) :: lp_offset,t1_lp,xc1_lp,xf1,w1_x,w1_y,lam1,a1,lp1_rad,ZR1,tau1_fwhm
  real(dp) :: lp1_amp,om1
- real(dp) :: oml,ZR,E0,lp_pow,lp_intensity,lp_xsize,lp_delay,P_c
+ real(dp) :: oml,ZR,E0,lp_pow,lp_intensity,lp_xsize,lp_delay,P_c,r_c
  real(dp) :: lp_amp,lp_max,eb_max,lp_energy
 
  real(dp) :: t0_b,lp_rad,el_lp,el_D,lambda_p,omega_p,lpvol
@@ -75,6 +76,10 @@
  real(dp) :: a_rk(6),b_rk(6),c_rk(0:6)
  real(dp) :: a_lpf(4),b_lpf(4),c_lpf(4)
  real(dp) :: energy_in_targ
+ logical :: Part,part_dcmp,cmp,test,Stretch,Hybrid,Channel
+ logical :: Lp_active,Lp_inject,Plane_wave,Lin_lp,Circ_lp,Relativistic,Envelope,Ions,Beam,Pbeam,Two_color
+ logical :: Ionization,Wake,Solid_target,Charge_cons,G_prof,High_gamma
+ logical :: Impact_ioniz,Comoving,P_tracking
 
  end module grid_and_particles
 

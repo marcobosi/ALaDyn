@@ -331,11 +331,11 @@
  endif
  end subroutine den_zyxbd
  !====================
- subroutine fluid_left_xshift(fld,u0,i1,i2,j1,j2,k1,k2,ic1,ic2,xsh)
+ subroutine fluid_left_xshift(fld,den_x,den_yz,i1,i2,j1,j2,k1,k2,ic1,ic2,xsh)
 
  integer,intent(in) :: i1,i2,j1,j2,k1,k2,ic1,ic2,xsh
  real(dp),intent(inout) :: fld(:,:,:,:)
- real(dp),intent(in) :: u0(:)
+ real(dp),intent(in) :: den_x(:),den_yz(:,:)
  integer :: ic,ix,j,iy,iz,kk,lenws
 
 
@@ -379,7 +379,9 @@
     fld(ix,iy,iz,ic)=fld(ix+xsh,iy,iz,ic)
    end do
    fld(i1,iy,iz,ic)=2.*fld(i1+1,iy,iz,ic)-fld(i1+2,iy,iz,ic)
-   fld(i2+1:i2+xsh,iy,iz,ic)=u0(i2+1:i2+xsh)
+   do ix=i2+1,i2+xsh
+    fld(ix,iy,iz,ic)=den_x(ix)*den_yz(iy,iz)
+   end do
   end do
  end do
  ! now replaces (i2+1:i2+xsh=n1p)

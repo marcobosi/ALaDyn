@@ -26,7 +26,7 @@
  implicit none
 
  real(dp),allocatable :: ebf(:,:,:,:),ebf_bunch(:,:,:,:),jc(:,:,:,:)
- real(dp),allocatable :: pot(:,:,:,:),fluid_x_profile(:)
+ real(dp),allocatable :: pot(:,:,:,:),fluid_x_profile(:),fluid_yz_profile(:,:)
  real(dp),allocatable :: ebf0(:,:,:,:),ebf1(:,:,:,:)
  real(dp),allocatable :: ebf0_bunch(:,:,:,:),ebf1_bunch(:,:,:,:),jb(:,:,:,:)
  integer,allocatable :: sp_count(:,:)
@@ -77,9 +77,11 @@
  endif
  if(ifluid==2)then
   if(lp <3)then     !for 2th order lpf in fluid variables
-   allocate(ebf0(n1p,n2p,n3p,ncomp),STAT=AllocStatus)
-   fsize_loc=fsize_loc+ng*ncomp
-   ebf0=0.0
+   if(.not.allocated(ebf0))then
+    allocate(ebf0(n1p,n2p,n3p,ncomp),STAT=AllocStatus)
+    fsize_loc=fsize_loc+ng*ncomp
+    ebf0=0.0
+   endif
   endif
  endif
  if(ns>0)then
@@ -135,11 +137,18 @@
  if(ndm==3)n3p=n3+ihx
  ng=n1p*n2p*n3p
  allocate(ebf_bunch(n1p,n2p,n3p,bcomp),STAT=AllocStatus)
- allocate(jb(n1p,n2p,n3p,ndm),STAT=AllocStatus)
  ebf_bunch=0.0
- jb=0.0
-
- fsize=fsize+ng*(bcomp+ndm)
+ fsize=fsize+ng*bcomp
+!===================
+ !allocate(jb(n1p,n2p,n3p,ndm),STAT=AllocStatus)
+ !jb=0.0
+ !fsize=fsize+ng*ndm
+!=========== Now jb() not required
+ if(.not.allocated(ebf0))then
+  allocate(ebf0(n1p,n2p,n3p,bcomp),STAT=AllocStatus)
+  ebf0=0.0
+  fsize=fsize+ng*bcomp
+ endif
  if(ibch>0)then
   allocate(ebf1_bunch(n1p,n2p,n3p,bcomp),STAT=AllocStatus)
   ebf1_bunch=0.0

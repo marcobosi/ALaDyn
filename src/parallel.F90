@@ -24,12 +24,18 @@
  use mpi_var
  use grid_and_particles
 
+#if !defined (__INTEL_COMPILER)
+ use mpi
+ use fft_lib
+ implicit none
+#else
 #if !defined (_CRESCO)
 #define ENABLE_MPI_LONG_INT
 #endif
  use fft_lib
  implicit none
  include 'mpif.h'
+#endif
 
 
  integer, parameter :: offset_kind = MPI_OFFSET_KIND
@@ -1477,7 +1483,6 @@
  subroutine pftw3d(w,n1,n2,n2_loc,n3,n3_loc,is)
  real(dp),intent(inout) :: w(:,:,:)
  integer,intent(in) :: n1,n2,n2_loc,n3,n3_loc,is
- integer :: n1_loc
 
  select case(is)
  case(-1)

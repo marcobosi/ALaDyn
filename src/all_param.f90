@@ -150,9 +150,9 @@
 
  subroutine param
  ! sets general parameters and grid depending on initial conditions
- integer :: i, sh_t,pml_size
+ integer :: i, pml_size
  real(dp) :: bunch_charge_density,gvol,gvol_inv,nm_fact
- real(dp) :: aph_fwhm
+ real(dp) :: aph_fwhm,c1_fact,c2_fact
 
  a_lpf(1:4)=1.
  b_lpf(1:4)=1.
@@ -185,7 +185,7 @@
  nx1_loc=nx/nprocy
  ny_loc=ny/nprocy
  nz_loc=nz/nprocz
- sh_t=ny/2-ny_targ/2
+ sh_targ=ny/2-ny_targ/2
  nx_stretch=0
  pml_size=0
  Stretch=.false.
@@ -238,12 +238,12 @@
   zmin_t=z(1)
   zmax_t=z(nz+1)
   if(ndim >1)then
-   ymin_t=y(sh_t+1)
-   ymax_t=y(ny+1-sh_t)
+   ymin_t=y(sh_targ+1)
+   ymax_t=y(ny+1-sh_targ)
   endif
   if(ndim >2 )then
-   zmin_t=z(1+sh_t)
-   zmax_t=z(nz+1-sh_t)
+   zmin_t=z(1+sh_targ)
+   zmax_t=z(nz+1-sh_targ)
   endif
 !======================================
  Hybrid= .false.
@@ -265,6 +265,7 @@
  Two_color = .false.
  Wake=.false.
  Solid_target=.false.
+ Channel=.false.
  nm_fact=1.
  if(iform <2)Charge_cons=.true.
  if(np_per_xc(1) > 0)Part=.true.
@@ -284,6 +285,7 @@
   mp_per_cell(i)=np_per_xc(i)*np_per_yc(i)
   if(ndim==3) mp_per_cell(i)=np_per_xc(i)*np_per_yc(i)*np_per_zc(i)
  end do
+ j0_norm=1.
  nref=mp_per_cell(1)
  ratio_mpc=1.
  if(mp_per_cell(1) >0)then
@@ -299,7 +301,7 @@
   if(mp_per_cell(1)==0)ratio_mpfluid=0.0
   if(ny_targ==0)ratio_mpfluid=0.0
  endif
- j0_norm=j0_norm*ratio_mpfluid
+ !j0_norm=j0_norm*ratio_mpfluid
  !========================== multispecies
  ! mass-charge parameters four species: three ion species+ electrons
  ! Ions charges defined by initial conditions.
@@ -333,7 +335,7 @@
    if(mass_number(i)< 1.)call set_atomic_weight(atomic_number(i),mass_number(i))
   end do
   if(ionz_lev >0)Ionization=.true.
-  if(Ionization) call set_ionization_coeff(atomic_number,nsp_ionz)
+  if(Ionization) call set_ionization_coeff(atomic_number,nsp_ionz) 
   !uses ion index 1,2,,,nsp-1
   wgh_ion=1./(real(mp_per_cell(2),dp))
   if(ion_min(1)>1)wgh_ion=1./(real(ion_min(1),dp)*real(mp_per_cell(2),dp))
@@ -356,7 +358,6 @@
   if(model_id == 4) then
    mod_ord=2
    Envelope=.true.
-  ! L_env_modulus= .true.
   endif
   if(n_over_nc >1.)then
    Solid_target=.true.
@@ -396,6 +397,15 @@
 !=============================
   nc0=oml*oml              !nc0=(2*pi/lam0)** 2
   ompe=nc0*n_over_nc       !squared adimensional plasma frequency :
+!===============================
+! Parabolic plasma channel profile const  r_c=w0_y matched condition
+  chann_fact=0.0
+  if(r_c >0.0)then
+   Channel=.true.
+   c1_fact= w0_y*w0_y/(r_c*r_c)
+   c2_fact= lam0*lam0/(r_c*r_c)
+   chann_fact=c1_fact*c2_fact/(pi*pi*n_over_nc)
+  endif
 !========== Laser parameters
   lp_intensity=1.37*(a0/lam0)*(a0/lam0)  !in units 10^18 W/cm^2
   lp_rad=w0_y*sqrt(2.*log(2.))           !FWHM focal spot
@@ -413,8 +423,8 @@
   if(G_prof)then
    aph_fwhm= sqrt(2.*log(2.))
   else
-   aph_fwhm=2.*acos(sqrt(0.5*sqrt(2.)))/pi
-   !aph_fwhm=2.*acos(sqrt(sqrt(0.5*sqrt(2.))))/pi this is only valid for cos^4 pulse shape
+   aph_fwhm=2.*acos(sqrt(0.5*sqrt(2.)))/pi   !for cos^2(x-t)
+                         !for cos^4(x-7)  aph_fwhm=2.*acos(sqrt(sqrt(0.5*sqrt(2.))))/pi
   endif
   lx_fwhm=tau_fwhm*speed_of_light ! In micron unit
   w0_x=lx_fwhm/aph_fwhm
@@ -440,9 +450,9 @@
    ! for fields E_u=GV/m = 1.e-03*mc^2/(l0*e*E0)  (A,phi) in kVolt unit
    ! n0= 10^18/cc =10^6/mu^3
    !========================================
-   ! the electron radius r_c=rc0*10^{-8}mu
+   ! the electron radius r_e=rc0*10^{-8}mu
    !the squared adimensional plasma frequency on n0 density
-   !   r_c*l0*l0*n0= 10^{-3}*rc0
+   !   r_e*l0*l0*n0= 10^{-3}*rc0
    !omp^2=   4*pi*l0*l0*rc*n0=4*pi*rc0*1.e-03*E0/
    !=============================
    nm_fact=1.e+06      !electron density[mu^{-3}] in the n0=10^18/cm^3 plasma
@@ -523,48 +533,23 @@
 
    enddo
    if(L_particles)then
-    do i=1,nsb
-     nb_tot(i) = nint(gvol_inv* bunch_volume(i)/j0_norm)
-    end do
+    if(j0_norm >0.0)then
+     do i=1,nsb
+      nb_tot(i) = nint(gvol_inv* bunch_volume(i)/j0_norm)
+     end do
+    endif
    endif
    do i=1,nsb
-    if(bunch_shape(i)==1 .and. nb_tot(i)>  0) then
-      jb_norm(i)=rhob(i)*gvol_inv*bunch_volume(i)/(nb_tot(i)*j0_norm)
-    endif
-    if(bunch_shape(i)==1 .and. nb_tot(i)==-1) then
-      jb_norm(i)=1.0_dp/(PRODUCT(ppc_bunch(i,:))*j0_norm)
-    endif
-    if(bunch_shape(i)==2 .and. nb_tot(i)>  0) then 
-      jb_norm(i)=(Charge_left(i)+Charge_right(i))/2.0*gvol_inv*bunch_volume(i)/(nb_tot(i)*j0_norm)
-    endif
-    if(bunch_shape(i)==1 .and. nb_tot(i)==-1) then 
-      jb_norm(i)=1.0_dp/(PRODUCT(ppc_bunch(i,:))*j0_norm)
-    endif
-    if(bunch_shape(i)==3 .and. nb_tot(i)>  0) then
-      jb_norm(i)=(Charge_left(i)+Charge_right(i))/2.0*gvol_inv*bunch_volume(i)/(nb_tot(i)*j0_norm)
-    endif
-    if(bunch_shape(i)==3 .and. nb_tot(i)==-1) then
-      jb_norm(i)=1.0_dp/(PRODUCT(ppc_bunch(i,:))*j0_norm)
-    endif
-    if(bunch_shape(i)==4 .and. nb_tot(i)>  0) then 
-      jb_norm(i)=rhob(i)*gvol_inv*bunch_volume(i)/(nb_tot(i)*j0_norm)
-    endif
-    if(bunch_shape(i)==1 .and. nb_tot(i)==-1) then 
-      jb_norm(i)=1.0_dp/(PRODUCT(ppc_bunch(i,:))*j0_norm)
-    endif
+    if(bunch_shape(i)==1) jb_norm(i)=rhob(i)*gvol_inv*bunch_volume(i)/(nb_tot(i)*j0_norm)
+    if(bunch_shape(i)==2) jb_norm(i)=(Charge_left(i)+Charge_right(i))/2.0*gvol_inv*bunch_volume(i)/(nb_tot(i)*j0_norm)
+    if(bunch_shape(i)==3) jb_norm(i)=(Charge_left(i)+Charge_right(i))/2.0*gvol_inv*bunch_volume(i)/(nb_tot(i)*j0_norm)
+    if(bunch_shape(i)==4) jb_norm(i)=rhob(i)*gvol_inv*bunch_volume(i)/(nb_tot(i)*j0_norm)
    end do
-
-   !--- I am forcing this part to be again with the correct input values ---!
-    do i=1,nsb
-     if(ppc_bunch(i,1)>0) nb_tot(i)=-1
-    end do
-   !--- *** ---!
-
    b_charge=bunch_charge(1)
   endif
  !============================
  !  SET PARAM all cases
- if(Hybrid)nfcomp=curr_ndim+1
+ nfcomp=curr_ndim+1
  nsp_run=nsp
  if(Wake)then
   nsp_run=1  !only electrons running

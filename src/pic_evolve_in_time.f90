@@ -1,4 +1,5 @@
- !*****************************************************************************************************!
+
+!*****************************************************************************************************!
  !                            Copyright 2008-2018  The ALaDyn Collaboration                            !
  !*****************************************************************************************************!
 
@@ -132,8 +133,8 @@
   do k=1,k2
    do j=1,j2
     do ix=i1,i2
-     whz=wghpt(ix,ic)*loc_wghz(k,ic)
-     wgh=real(whz*loc_wghy(j,ic),sp)
+     whz=wghpt(ix,ic)*loc_wghyz(j,k,ic)
+     wgh=real(whz,sp)
      n=n+1
      spec(ic)%part(n,1)=xpt(ix,ic)
      spec(ic)%part(n,2)=loc_ypt(j,ic)
@@ -146,7 +147,7 @@
  else
   do j=1,j2
    do ix=i1,i2
-    wgh=real(loc_wghy(j,ic)*wghpt(ix,ic),sp)
+    wgh=real(loc_wghyz(j,1,ic)*wghpt(ix,ic),sp)
     n=n+1
     spec(ic)%part(n,1)=xpt(ix,ic)
     spec(ic)%part(n,2)=loc_ypt(j,ic)
@@ -191,7 +192,7 @@
  integer :: j2,k2,ndv
  integer :: j,k
 
- !========== inject particles from the right
+ !========== inject particles from the right 
  !   xmx is the box xmax grid value at current time after window move
  !   in Comoving frame xmax is fixed and particles are left advected
  !=================================
@@ -199,7 +200,7 @@
  !  nptx(ic) is updated in the same way both for moving window xmax
  !  or for left-advect particles with fixed xmax
  !===============================================
-
+ 
  ndv=nd2+1
  do ic=1,nsp
  ! if(Comoving)then
@@ -207,7 +208,7 @@
  !  if(i1 <= sptx_max(ic))then
  !   i2=i1
  !   do ix=i1,sptx_max(ic)
- !    if(xpt(ix,ic) <= xmx)i2=i2+1
+ !    if(xpt(ix,ic) <= xmx)i2=i2+1 
  !   end do
  !  endif
  !  nptx(ic)=i2
@@ -215,7 +216,7 @@
    i1=1+nptx(ic)
    if(i1 <= sptx_max(ic))then
     do ix=i1,sptx_max(ic)
-     if(xpt(ix,ic) > xmx)exit
+     if(xpt(ix,ic) > xmx)exit 
     end do
     i2=ix-1
     if(ix==sptx_max(ic))i2=ix
@@ -236,14 +237,14 @@
    do ix=i1,i2
     npt_inj(ic)=npt_inj(ic)+1
    end do
-  case(2)
+   case(2)
    j2=loc_npty(ic)
    do ix=i1,i2
     do j=1,j2
      npt_inj(ic)=npt_inj(ic)+1
     end do
    end do
-  case(3)
+   case(3)
    k2=loc_nptz(ic)
    j2=loc_npty(ic)
    do ix=i1,i2
@@ -253,9 +254,9 @@
      end do
     end do
    end do
-  end select
+   end select
    np_new=0
-  np_old=loc_npart(imody,imodz,imodx,ic)
+   np_old=loc_npart(imody,imodz,imodx,ic)
    np_new=max(np_old+npt_inj(ic),np_new)
    if(ic==1)then
     if(size(ebfp,1)< np_new)then
@@ -263,7 +264,7 @@
      allocate(ebfp(np_new,ndv))
     endif
    endif
-  !=========================
+ !=========================
    if(size(spec(ic)%part,ic) <np_new)then
     do n=1,np_old
      ebfp(n,1:ndv)=spec(ic)%part(n,1:ndv)
@@ -330,16 +331,16 @@
  real(dp) :: dt_tot
  logical,parameter :: mw=.true.
  !======================
- ! In comoving x-coordinate the
+ ! In comoving x-coordinate the 
  ! [xmin <= x <= xmax] computational box is stationaty
- ! xi= (x-vb*t) => xw is left-advected
+ ! xi= (x-vb*t) => xw is left-advected 
  ! fields are left-advected in the x-grid directely in the maxw. equations
  ! particles are left-advected:
  ! xp=xp-vb*dt inside the computational box is added in the eq. of motion and
  ! for moving coordinates at each w_nst steps
  ! xpt(ix,ic)=xpt(ix,ic)-vb*w_nst*dt outside the computational box
  ! then targ_in=targ_in -vb*w_nst*dt   targ_out=targ_out-vb*w_nst*dt
- !
+ ! 
  !==================
  if(loc_it==0)return
  dt_tot=0.0
@@ -421,8 +422,9 @@
    fluid_x_profile(ix)=fluid_x_profile(ix+nshx)
   end do
   nxf=nxf-nshx
-  call fluid_left_xshift(up,fluid_x_profile,i1,wi2,j1,nyp,k1,nzp,1,nfcomp,nshx)
-  call fluid_left_xshift(up0,fluid_x_profile,i1,wi2,j1,nyp,k1,nzp,1,nfcomp,nshx)
+  call fluid_left_xshift(up,fluid_x_profile,fluid_yz_profile,i1,wi2,j1,nyp,k1,nzp,1,nfcomp,nshx)
+  call fields_left_xshift(up0,i1,wi2,j1,nyp,k1,nzp,1,nfcomp,nshx)
+  !call fluid_left_xshift(up0,fluid_x_profile,fluid_yz_profile,i1,wi2,j1,nyp,k1,nzp,1,nfcomp,nshx)
  endif
  if(Envelope)then
   nc_env=size(env,4)
@@ -443,7 +445,6 @@
  endif
  end subroutine LP_window_xshift
  !==============================
-
  !=======================================
  subroutine BUNCH_window_xshift(dt_loc,witr,wt)
  real(dp),intent(in) :: dt_loc
@@ -485,6 +486,7 @@
  xp1_out=xp1_out+dx*nshx
  !====================
  w2f=n1p-nshx
+ wi2=w2f
  if(w2f<=0)then
   write(6,*)'Error in window shifting in task',imody,imodz,imodx
   ier=2
@@ -496,6 +498,15 @@
                    ebf_bunch,i1,w2f,j1,nyp,k1,nzp,1,nbfield,nshx)
  call fields_left_xshift(&
              ebf1_bunch,i1,w2f,j1,nyp,k1,nzp,1,nbfield,nshx)
+ if(Hybrid)then
+  do ix=wi2,nxf-nshx
+   fluid_x_profile(ix)=fluid_x_profile(ix+nshx)
+  end do
+  nxf=nxf-nshx
+  call fluid_left_xshift(up,fluid_x_profile,fluid_yz_profile,i1,wi2,j1,nyp,k1,nzp,1,nfcomp,nshx)
+  call fields_left_xshift(up0,i1,w2f,j1,nyp,k1,nzp,1,nbfield,nshx)
+  !call fluid_left_xshift(up0,fluid_x_profile,fluid_yz_profile,i1,wi2,j1,nyp,k1,nzp,1,nfcomp,nshx)
+ endif
  !========================================
  if(Part)then
   call cell_part_dist(mw)
@@ -527,7 +538,7 @@
   if(ndim < 3)then
    if(f_ch <2)then
     call esirkepov_2d_curr(sp_loc,pdata,curr,npt0,npt,n_st,curr_ndim,ndim,xb,yb)
-  else
+   else
     call ncdef_2d_curr(sp_loc,pdata,curr,npt0,npt,n_st,curr_ndim,ndim,xb,yb)
    endif
    return
@@ -536,7 +547,7 @@
    call esirkepov_3d_curr(sp_loc,pdata,curr,npt0,npt,n_st,xb,yb,zb)
   else
    call ncdef_3d_curr(sp_loc,pdata,curr,npt0,npt,n_st,xb,yb,zb)
- endif
+  endif
  !========================
  ! accumulates for each species currents on curr(i1:n1p,j1:n2p,k1:n3p,1:compnent)
  !============================
@@ -623,8 +634,7 @@
  end subroutine pfields_prepare
 !================================
  subroutine advance_lpf_fields(ef,curr,dt_lp,v_b,&
-  i1,i2,j1,j2,k1,k2,ibd)
-
+                               i1,i2,j1,j2,k1,k2,ibd)
  real(dp),intent(inout) :: ef(:,:,:,:)
  real(dp),intent(in) :: curr(:,:,:,:)
  real(dp),intent(in) :: dt_lp,v_b
@@ -649,12 +659,12 @@
   str=0
   stl=1
   call fill_ebfield_yzxbdsdata(ef,i1,i2,j1,j2,k1,k2,1,curr_ndim,str,stl)
-  ! to fill electric field data
+  ! To fill electric field data
   ! sends stl to the left,
   ! recvs stl points from right at (nyp+stl), (nzp+stl)
  endif
  !============== first substep dt/2 advance of B-field
- call ef_bds(ef,i1,i2,j1,j2,k1,k2,zero_dp,ibd)
+ call ef_bds(ef,i1,i2,j1,j2,k1,k2,0.0,ibd)
  ! Uses upper BCs of E fields: ibd=0 for inflow-outflow
  !                             ibd=1 for symmetric
  if(Comoving)then
@@ -663,7 +673,7 @@
  ! B^{n} => B^{n}+v_b*Dth[Dx]B^n  v_b >0
  endif
  !==================================
- ! solves B^{n+1/2}= B^n -Dth[rot E]^n
+ ! solves B^{n+1/2}= B^n -Dth[rot E]^n 
  !============================
  call rotE(ef,i1,i2,j1,j2,k1,k2,dthx,dthy,dthz)
  !=============================
@@ -685,14 +695,14 @@
  ! E^{n} => E^{n}+v_b*Dth[Dx]E^n
  endif
  !=======================
- ! solves E^{n+1}= E^n +DT[rot B]^{n+1/2}- ompe*DT*J^{n+1/2}
+ ! solves E^{n+1}= E^n +DT[rot B]^{n+1/2}- ompe*DT*J^{n+1/2} 
  !==================
  call rotB(ef,i1,i2,j1,j2,k1,k2,dtx,dty,dtz)
  !===================
  ! adds currents
  do ik=1,curr_ndim
   ef(i1:i2,j1:j2,k1:k2,ik)=ef(i1:i2,j1:j2,k1:k2,ik)-&
-   ompe*curr(i1:i2,j1:j2,k1:k2,ik)
+                           ompe*curr(i1:i2,j1:j2,k1:k2,ik)
  end do
  if(Comoving)then
   call field_xcomov_advect(ef,i1,i2,j1,j2,k1,k2,1,curr_ndim,dthx,-v_b,2)
@@ -707,7 +717,7 @@
  endif
  ! E field gets stl points from right (nyp+stl), (nzp+stl)
  call ef_bds(ef,i1,i2,j1,j2,k1,k2,dt_lp,ibd)
- ! solves B^{n+1}= B^{n+1/2} -Dth[rot E]^{n+1}
+ ! solves B^{n+1}= B^{n+1/2} -Dth[rot E]^{n+1} 
  !===================
  call rotE(ef,i1,i2,j1,j2,k1,k2,dthx,dthy,dthz)
  !==============
@@ -736,7 +746,6 @@
  dtx=dx_inv*dt_rk
  dty=dy_inv*dt_rk
  dtz=dz_inv*dt_rk
-
  if(lp==1)then
   do ik=1,nfield
    do iz=k1,nzp
@@ -756,21 +765,21 @@
   call fill_ebfield_yzxbdsdata(&
                 ef,i1,nxp,j1,nyp,k1,nzp,1,nfield,str,stl)
  endif
- call ef_bds(ef,i1,nxp,j1,nyp,k1,nzp,zero_dp,0)
- call bf_bds(ef,i1,nxp,j1,nyp,k1,nzp,zero_dp,0)
+ call ef_bds(ef,i1,nxp,j1,nyp,k1,nzp,0.0,0)
+ call bf_bds(ef,i1,nxp,j1,nyp,k1,nzp,0.0,0)
  !=======================
  ! enters curr() <=[dt*b^k]*J(x,v)^{k-1}
  !===============================
  ! curr() already multiplied by dt_rk
- do ik=1,curr_ndim
-  do iz=k1,nzp
-   do iy=j1,nyp
-    do ix=i1,nxp
+  do ik=1,curr_ndim
+   do iz=k1,nzp
+    do iy=j1,nyp
+     do ix=i1,nxp
       curr(ix,iy,iz,ik)=ef0(ix,iy,iz,ik)-ompe*curr(ix,iy,iz,ik)
+     end do
     end do
    end do
   end do
- end do
  ! aux acts as auxiliary array
  !======================
  ! First advances E^k=E0+[rot(B)-ompe*jc]^{k-1}*dt_k  E^k stored in aux(1:3).
@@ -836,7 +845,7 @@
   str=1
   stl=1
   call fill_ebfield_yzxbdsdata(&
-   evf,i1,nxp,j1,nyp,k1,nzp,1,2,str,stl)
+                evf,i1,nxp,j1,nyp,k1,nzp,1,2,str,stl)
  endif
  do k=k1,nzp
   do j=j1,nyp
@@ -863,8 +872,7 @@
  end subroutine advance_lpf_envelope
  ! =================================
  subroutine advance_env_rk4_field(&
-  curr,envf,dt_loc,i1,nxp,j1,nyp,k1,nzp,lp,rko)
-
+                             curr,envf,dt_loc,i1,nxp,j1,nyp,k1,nzp,lp,rko)
  real(dp),intent(inout) :: curr(:,:,:,:),envf(:,:,:,:)
  real(dp),intent(in) :: dt_loc
  integer,intent(in) :: i1,nxp,j1,nyp,k1,nzp,lp,rko
@@ -964,6 +972,7 @@
  dthy=0.5*dty
  dthz=0.5*dtz
  !In 2D nfield=3 nbfield=4=nfield+1   in fb(4)=Jx[i+1/2,j,k] at t=0
+ !fb=[Ex,Ey,Ez,Jx,By,Bz]
  !================================================
  call fill_ebfield_xbdsdata(&
                      fb,i1,i2,j1,j2,k1,k2,1,nbfield,1,1)
@@ -980,7 +989,7 @@
   end do
  end do
  ! Subtracts from the ongitudinal bunch current the advected initial bunch
- ! current
+ ! current  
  end subroutine advect_bunch_fields
  !==================================
 
@@ -1136,7 +1145,7 @@
    gam2=1.+dot_product(pp(1:3),pp(1:3))
    pt(p,7)= dt_lp/sqrt(gam2)
    vp(1:3)=pt(p,7)*pp(1:3)
-   pt(p,1:3)=vp(1:3)                  !stores dt*V
+   pt(p,1:3)=vp(1:3)                  !stores dt*V 
    sp_loc%part(p,1:3)=sp_loc%part(p,1:3)+vp(1:3) !new positions
   end do
  end select
@@ -1150,7 +1159,7 @@
  if(Comoving)then
   do p=n0,np
    sp_loc%part(p,1)=sp_loc%part(p,1)-dt_lp*vb
-   pt(p,1)=pt(p,1)-dt_lp*vb !
+   pt(p,1)=pt(p,1)-dt_lp*vb ! 
   end do
  endif
  end subroutine lpf_momenta_and_positions
@@ -1175,36 +1184,36 @@
  n_st=0
  if(Stretch)n_st=str_indx(imody,imodz)
  !====================
-  call pfields_prepare(ebf,i1,i2,j1,j2,k1,k2,nfield,2,2)
+ call pfields_prepare(ebf,i1,i2,j1,j2,k1,k2,nfield,2,2)
  if(Ionization)then
   if(iter_loc==0)then
    call init_random_seed(mype)
-   endif
-   id_ch=nd2+1
-   do ic=2,nsp_ionz
-    np=loc_npart(imody,imodz,imodx,ic)
-    if(np>0)then
-     call set_ion_Efield(ebf,spec(ic),ebfp,np,n_st,ndim,nsp_run,dt_loc,xm,ym,zm)
-     if(mod(iter_loc,100)==0)then     !refresh ionization tables, if needed
-      loc_ef2_ion(1)=maxval(ebfp(1:np,id_ch))
-      loc_ef2_ion(1)=sqrt(loc_ef2_ion(1))
-      ef2_ion(1)=loc_ef2_ion(1)
-      !if(prl)call allreduce_dpreal(MAXV,loc_ef2_ion,ef2_ion,1)
-      if(ef2_ion(1) > lp_max)then
-       lp_max=1.1*ef2_ion(1)
-       call set_field_ioniz_wfunction(&
-        ion_min(ic-1),atomic_number(ic-1),ic,ionz_lev,ionz_model,lp_max,dt_loc)
-      endif
-     endif
-    call ionization_cycle(spec(ic),ebfp,np,ic,iter_loc,0,de_inv)
-    endif
-    !======== injects new electrons.
-   end do
   endif
-  !===================END IONIZATION MODULE============
+  id_ch=nd2+1
+  do ic=2,nsp_ionz
+   np=loc_npart(imody,imodz,imodx,ic)
+   if(np>0)then
+    call set_ion_Efield(ebf,spec(ic),ebfp,np,n_st,ndim,nsp_run,dt_loc,xm,ym,zm)
+    if(mod(iter_loc,100)==0)then     !refresh ionization tables, if needed
+     loc_ef2_ion(1)=maxval(ebfp(1:np,id_ch))
+     loc_ef2_ion(1)=sqrt(loc_ef2_ion(1))
+     ef2_ion(1)=loc_ef2_ion(1)
+     !if(prl)call allreduce_dpreal(MAXV,loc_ef2_ion,ef2_ion,1)
+     if(ef2_ion(1) > lp_max)then
+      lp_max=1.1*ef2_ion(1)
+      call set_field_ioniz_wfunction(&
+                     ion_min(ic-1),atomic_number(ic-1),ic,ionz_lev,ionz_model,lp_max,dt_loc)
+     endif
+    endif
+    call ionization_cycle(spec(ic),ebfp,np,ic,iter_loc,0,de_inv)
+   endif
+    !======== injects new electrons. 
+  end do
+ endif
+ !===================END IONIZATION MODULE============
   !    ions enter with new ionization levels and new electrons
   !                   are injected
-  !=============================================
+ !=============================================
  jc(:,:,:,:)=0.0
  !curr_clean
  if(Part)then
@@ -1216,7 +1225,7 @@
     !============
     call set_lpf_acc(ebf,spec(ic),ebfp,np,ndim,nfield,n_st,xm,ym,zm)
     call field_charge_multiply(spec(ic),ebfp,1,np,nfield)
-
+   
     if(initial_time)call init_lpf_momenta(spec(ic),ebfp,1,np,dt_loc,Ltz)
     call lpf_momenta_and_positions(spec(ic),ebfp,1,np,dt_loc,vbeam,Ltz)
     ! For each species :
@@ -1231,10 +1240,10 @@
   call curr_mpi_collect(jc,i1,i2,j1,j2,k1,k2)
  endif        !end particle section
   !================ sums and normalize currents
- !=======================
+  !=======================
   ! Inject fields at i=i1-1  for inflow Lp_inject=T
   call wave_field_left_inject(xm)  !(Bz=Ey By=Ez are injected at i1-1 point
-   call advance_lpf_fields(ebf,jc,dt_loc,vbeam,i1,i2,j1,j2,k1,k2,0)
+  call advance_lpf_fields(ebf,jc,dt_loc,vbeam,i1,i2,j1,j2,k1,k2,0)
  !============================
  contains
  subroutine wave_field_left_inject(x_left)
@@ -1242,17 +1251,16 @@
   real(dp) :: tnew
   integer :: wmodel_id,ic
 
- wmodel_id=model_id
- if(Plane_wave)wmodel_id=0
-
- tnew=t_loc    !Set inflow values [B_z{n}(i1-1/2) E_y{n}(i-1}
+  wmodel_id=model_id
+  if(Plane_wave)wmodel_id=0
+  tnew=t_loc    !Set inflow values [B_z{n}(i1-1/2) E_y{n}(i-1}
   Lp_inject=.false.
   do ic=1,nb_laser
    if(lp_in(ic) < x_left.and.lp_end(ic)>= xm)then
     Lp_inject=.true.
- if(model_id<3) call inflow_lp_fields(&
+    if(model_id<3) call inflow_lp_fields(&
               ebf,lp_amp,tnew,t0_lp,w0_x,w0_y,xf_loc(ic),oml,wmodel_id,i1,j1,j2,k1,k2)
- if(model_id==3)call inflow_cp_fields(&
+    if(model_id==3)call inflow_cp_fields(&
               ebf,lp_amp,tnew,t0_lp,w0_x,w0_y,xf_loc(ic),wmodel_id,i1,j1,j2,k1,k2)
    endif
    lp_in(ic)=lp_in(ic)+dt_loc
@@ -1393,7 +1401,7 @@
   apy=-dty
   apz=-dtz
   ch=dt_rk*unit_charge(1)
-  fdim=curr_ndim+1     !dimension of fluid variables (ux,uy,uz,den)
+  fdim=curr_ndim+1     !dimension of fluid variables (ux,uy,uz,den)    
   fldim=2*curr_ndim+1  !dimension of aux flx() array
 !====================== CONSERVATIVE FORM for DENSITY MOMEMTA
 !========== t^{k-1}=> t^k  RK cycle===========
@@ -1421,7 +1429,7 @@
       pp(1:curr_ndim)=gam_inv*pp(1:curr_ndim)  !(vx,vy)=pp/gam
      endif
      do ic=1,curr_ndim
-      flx(i,j,k,fdim+ic)=pp(ic)
+      flx(i,j,k,fdim+ic)=pp(ic) 
      end do
     end do
    end do
@@ -1440,7 +1448,7 @@
    end do
   endif
   call fill_flux_yzxbdsdata(flx,&
-                   i1,i2,j1,j2,k1,k2,1,fldim,3,3)
+                   i1,i2,j1,j2,k1,k2,1,fldim,3,3)  
                    !extends flx arrays to [j1-3--j2+3]
   call fill_ebfield_yzxbdsdata(&
                    ef,i1,i2,j1,j2,k1,k2,1,nfield,2,2)
@@ -1457,7 +1465,7 @@
   call rk_fluid_density_momenta(u,flx,i1,i2,j1,j2,k1,k2,fdim,fldim,apx,apy,apz)
                         !in u() adds f(u) derivatives in yrange [j1+1,j2+1]
                         ! u=u0+f(u)   flx[u^{k-1} unmodified
-  call add_rk_lorentz_force      !exit u=u+(E+vxB)^{k-1}
+  call add_rk_lorentz_force      !exit u=u+(E+vxB)^{k-1}  
    do ic=1,fdim
     do k=k1,k2
      do j=j1,j2
@@ -1603,7 +1611,7 @@
     endif
     call ionization_cycle(spec(ic),ebfp,np,ic,itr,0,de_inv)
    endif
-    !======== injects new electrons.
+    !======== injects new electrons. 
   end do
  endif
  !===================END IONIZATION MODULE============
@@ -1641,7 +1649,7 @@
   endif
   !================ sums and normalize currents
   call update_rk4_fields(ebf,ebf0,ebf1,jc,&
-   vbeam,dt_loc,i1,i2,j1,nyf,k1,nzf,lps)
+                         vbeam,dt_loc,i1,i2,j1,nyf,k1,nzf,lps)
  end do
  !-----------------------------
  end subroutine rk_evolve
@@ -1707,7 +1715,7 @@
  dt_lp=dtloc
  alp=0.5*dt_lp*Lz_fact
  !==========================
- !Enter F_pt(1:2)= q*E+0.5^*q^2*grad[F]/gamp and F_pt(3)=charge*B/gamp     where F=|A|^2/2
+ !Enter F_pt(1:2)= q*(E+0.5q*grad[F]/gamp) and F_pt(3)=q*B/gamp     where F=|A|^2/2
  select case(curr_ndim)
  case(2)
   !F_pt(5)=wgh/gamp
@@ -1758,7 +1766,7 @@
  real(dp),intent(in) :: dtloc,vb
  integer :: p,ch
  real(dp) :: pp(3),vp(3)
- real(dp) :: b2,gam2,gam_inv,dt_lp,dth_lp,gam,gam3
+ real(dp) :: b2,gam2,gam_inv,gamp_inv,gam3_inv,dt_lp,dth_lp
 
  dt_lp=dtloc
  dth_lp=0.5*dt_lp
@@ -1773,15 +1781,15 @@
    vp(1:2)=F_pt(p,1:2)              !grad[F]
    !=============================
    gam2=1.+dot_product(pp(1:2),pp(1:2))+F_pt(p,3)
-   gam=sqrt(gam2)
-   gam3=gam2*gam
    b2=0.25*dot_product(pp(1:2),vp(1:2))
-   !--------------------
-   gam_inv=1./gam
-   gam_inv=gam_inv*(1.-dt_lp*b2/gam3)
-   vp(1:2)=dt_lp*gam_inv*pp(1:2)
+   !-------------------- def gamma_p
+   gam_inv=1./sqrt(gam2)
+   gam3_inv=gam_inv/gam2
+   gamp_inv=gam_inv*(1.-dt_lp*b2*gam3_inv)
+   !============================
+   vp(1:2)=dt_lp*gamp_inv*pp(1:2)
    F_pt(p,3:4)=sp_loc%part(p,1:2) !old (x,y)^n positions
-   F_pt(p,5)=dt_lp*gam_inv                   ! 1/gamma
+   F_pt(p,5)=dt_lp*gamp_inv                   ! dt/gamma
    sp_loc%part(p,1:2)=sp_loc%part(p,1:2)+vp(1:2)
    F_pt(p,1:2)=vp(1:2) ! dt*V^{n+1/2}  velocities
   end do
@@ -1794,15 +1802,14 @@
    vp(1:3)=F_pt(p,1:3)              !grad[F]
    !=============================
    gam2=1.+dot_product(pp(1:3),pp(1:3))+F_pt(p,4)
-   gam=sqrt(gam2)
-   gam3=gam2*gam
    b2=0.25*dot_product(pp(1:3),vp(1:3))
    !--------------------
    gam_inv=1./sqrt(gam2)
-   gam_inv=gam_inv*(1.-dt_lp*b2/gam3)
-   vp(1:3)=dt_lp*gam_inv*pp(1:3)
+   gam3_inv=gam_inv/gam2
+   gamp_inv=gam_inv*(1.-dt_lp*b2*gam3_inv)
+   vp(1:3)=dt_lp*gamp_inv*pp(1:3)
    F_pt(p,4:6)=sp_loc%part(p,1:3) !old positions
-   F_pt(p,7)=dt_lp*gam_inv             ! dt*gam_inv
+   F_pt(p,7)=dt_lp*gamp_inv             ! dt*gam_inv
    sp_loc%part(p,1:3)=sp_loc%part(p,1:3)+vp(1:3)
    F_pt(p,1:3)=vp(1:3) ! dt*V^{n+1/2}  velocities
   end do
@@ -1929,7 +1936,7 @@
  if(prl)call fill_ebfield_yzxbdsdata(av,i1,i2,j1,j2,k1,k2,1,1,spr,spl)
 
  call env_grad(av,i1,i2,j1,j2,k1,k2,ord,dx_inv,dy_inv,dz_inv)
- !Exit staggered grad|A|^2/2 in jc(2:4) or jc(2:3)
+ !Exit staggered grad|A|^2/2 in jc(2:4) or jc(2:3) 
 
  if(prl)call fill_ebfield_yzxbdsdata(av,i1,i2,j1,j2,k1,k2,1,curr_ndim+1,spr,spl)
 
@@ -1972,44 +1979,42 @@
  end subroutine env_amp_two_fields_prepare
  !=======================================
  !=============== ENV FLUID SECTION
- subroutine update_lpf2_fluid_variables(u,u0,flx,ef,dt_lp,i1,i2,j1,j2,k1,k2,lz0)
+!=======================================
+ subroutine update_adam_bash_fluid_variables(u,u0,flx,ef,dt_lp,i1,i2,j1,j2,k1,k2,lz0,init_time)
   real(dp),intent(inout) :: u(:,:,:,:),u0(:,:,:,:)
   real(dp),intent(inout) :: ef(:,:,:,:),flx(:,:,:,:)
   real(dp),intent(in) :: dt_lp,lz0
   integer,intent(in) :: i1,i2,j1,j2,k1,k2
-  integer :: i,j,k,ic,ic1,str,stl,lp_step,fdim,fldim
-  real(dp) :: pp(1:3),den,gam2,ch,gam_inv,lzf,apx,apy,apz,dtx,dty,dtz
-  real(dp) :: dt2,ex,ey,ez,bx,by,bz,vx,vy,vz,qx,qy,qz,b1p,b1m
+  logical,intent(in) :: init_time
+  integer :: i,j,k,ic,ic1,str,stl,fdim,fldim
+  real(dp) :: pp(1:3),den,gam2,ch,gam_inv,lzf,apx,apy,apz
+  real(dp) :: ex,ey,ez,bx,by,bz,vx,vy,vz,qx,qy,qz,b1p,b1m
   real(dp),parameter :: wk1=0.5,eps=1.e-06
+  real(dp) :: abf_0,abf_1
 !===================================
 ! INTEGRATES by a one-step adam-bashfort (dissipative leap-frog)
-!  ENTER u^n} u0=u^{n-1}
 !===============================
 !   NON-CONSERVATIVE FORM of RELATIVISTC COLD FLUID
 !==========================================
-!   D_t(p)+v*grad(p)=charge*[E +vxB+ F_env]
+!   D_t(p)+v*grad(p)=charge*[E +vxB]
 !   D_t(n) +div(nv) =0
 !   arrays :  q(1:3)=v,  u(1:3)=p   gamm^2=1+p*p
 !===============================
 ! enter ef=total (E,B) fields on staggered grid at t^n time level
 !================================
-  !dt2=2.*dt_lp
-  dt2=(1.+fl_opt)*dt_lp
-  lzf=lz0*unit_charge(1)*dt2
-  apx=-dx_inv*dt2
-  apy=-dy_inv*dt2
-  apz=-dz_inv*dt2
-  dtx=dx_inv*dt_lp
-  dty=dy_inv*dt_lp
-  dtz=dz_inv*dt_lp
+  lzf=lz0*unit_charge(1)*dt_lp
+  apx=-dx_inv*dt_lp
+  apy=-dy_inv*dt_lp
+  apz=-dz_inv*dt_lp
   ch=dt_lp*unit_charge(1)
   fdim=curr_ndim+1
   fldim=2*curr_ndim+1
+  abf_0=-0.5
+  abf_1=1.5
                !================== Enter
                     ! flx[Px,Py,Pz,den,vx,vy,vz]^n fldim components
-                    ! ef[1:nfield] = total (E,B) fields
+                    ! ef[1:nfield] = total (E,B) fields and ponderomotive force
  !===============================================
-   lp_step=1
    str=1
    stl=1
    if(prl)then
@@ -2017,30 +2022,55 @@
     call fill_ebfield_yzxbdsdata(flx,i1,i2,j1,j2,k1,k2,1,fldim,2,2)
     call fill_ebfield_yzxbdsdata(ef,i1,i2,j1,j2,k1,k2,1,nfield,str,stl)
    endif
-  do ic=1,fdim
-   do k=k1,k2
-    do j=j1,j2
-     do i=i1,i2
-      u0(i,j,k,ic)=(1.-fl_opt)*u(i,j,k,ic)+fl_opt*u0(i,j,k,ic) !opt_fl=0.5  for 2th adam-bashforth
-     end do                                                    !opt_fl=1 for lpf
-    end do
-   end do
-  end do
-   call nc_fluid_density_momenta(flx,u0,i1,i2,j1,j2,k1,k2,fdim,apx,apy,apz)
-   call add_lorentz_force  !u_0=u_0+ F(u)+q*Dt*[E+vxB+grad|A^2|/4*gam] for envelope
-  do ic=1,fdim
-   do k=k1,k2
-    do j=j1,j2
-     do i=i1,i2
-      u(i,j,k,ic)=u0(i,j,k,ic)              ! updated u^{n+1}
-      u0(i,j,k,ic)=flx(i,j,k,ic)            ! u0= u^{n}
+  if(init_time)then    !a one_step lpf2 update
+   do ic=1,fdim
+    do k=k1,k2
+     do j=j1,j2
+      do i=i1,i2
+       u(i,j,k,ic)=u0(i,j,k,ic)     
+       u0(i,j,k,ic)=0.0
+      end do
      end do
     end do
    end do
-  end do
+   call nc_fluid_density_momenta(flx,u0,i1,i2,j1,j2,k1,k2,fdim,apx,apy,apz)
+   call add_lorentz_force   !in u_0 is stored Dt*(F_adv(u)+ F_{Lorentz}) at t^n
+   do ic=1,fdim
+    do k=k1,k2
+     do j=j1,j2
+      do i=i1,i2
+       u(i,j,k,ic)=u(i,j,k,ic)+2.*u0(i,j,k,ic)   !updates u^{n+1}=u^{n-1}+2*Dt*F^n
+       flx(i,j,k,ic)=0.5*(flx(i,j,k,ic)+u(i,j,k,ic))   ! (P,den) at t(n+1/2)
+      end do
+     end do
+    end do
+   end do
+  else   !in u_0 enter F^{n-1}
+   do ic=1,fdim
+    do k=k1,k2
+     do j=j1,j2
+      do i=i1,i2
+       u(i,j,k,ic)=u(i,j,k,ic)+abf_0*u0(i,j,k,ic)  
+       u0(i,j,k,ic)=0.0
+      end do
+     end do
+    end do
+   end do
+   call nc_fluid_density_momenta(flx,u0,i1,i2,j1,j2,k1,k2,fdim,apx,apy,apz)
+   call add_lorentz_force   !in u_0 is ftored Dt*(F_adv(u)+ F_{Lorentz}) for next timestep
+   do ic=1,fdim
+    do k=k1,k2
+     do j=j1,j2
+      do i=i1,i2
+       u(i,j,k,ic)=u(i,j,k,ic)+abf_1*u0(i,j,k,ic)   !updates u^{n+1}=u^{n}+Dt*(3/2*F^n-1/2F^{n-1})
+       flx(i,j,k,ic)=0.5*(flx(i,j,k,ic)+u(i,j,k,ic))   ! (P,den) at t(n+1/2)
+      end do
+     end do
+    end do
+   end do
+  endif
 !==========================
   contains
-!============== step=1 advances (E,B)^n => (E,B)^{n+1/2} ghost points already set
   subroutine add_lorentz_force
    real(dp) :: qp,qm
    do k=k1,k2
@@ -2086,27 +2116,26 @@
    endif
 !+++++++++++++++++++++++
   end subroutine add_lorentz_force
- end subroutine update_lpf2_fluid_variables
+ end subroutine update_adam_bash_fluid_variables
 !===================
- subroutine env_fluid_curr_accumulate(u,u0,flx,curr,dt_lp,i1,i2,j1,j2,k1,k2)
-  real(dp),intent(inout) :: u(:,:,:,:),u0(:,:,:,:)
+ subroutine fluid_curr_accumulate(flx,curr,dt_lp,i1,i2,j1,j2,k1,k2)
   real(dp),intent(inout) :: flx(:,:,:,:),curr(:,:,:,:)
   real(dp),intent(in) :: dt_lp
   integer,intent(in) :: i1,i2,j1,j2,k1,k2
-  integer :: i,j,k,ic,ic1,str,stl,lp_step,fdim
+  integer :: i,j,k,ic,ic1,str,stl,fdim
   real(dp) :: pp(1:3),den,gam2,ch,gam_inv
   real(dp) :: dt2,qx,qy,qz,b1p,b1m,ar,ai,av2
   real(dp),parameter :: wk1=0.5,eps=1.e-04
 
-! Enter fluid variables at t^{n+1} and t^n and flx(1)= |a|^2/2 at t^{N+1/2}
+! Enter fluid variables at t^{n+1/2} and flx(fdim+1)= |a|^2/2 at t^{n+1/2}
  ch=dt_lp*wk1*unit_charge(1)
  fdim=curr_ndim+1
   do k=k1,k2
    do j=j1,j2
     do i=i1,i2
-     av2= flx(i,j,k,fdim)                 !time centered |A|^{n+1/2}/2
-     den=0.5*(u(i,j,k,fdim)+u0(i,j,k,fdim))   !den^{n+1/2}
-     pp(1:curr_ndim)=0.5*(u(i,j,k,1:curr_ndim)+u0(i,j,k,1:curr_ndim)) !p momenta at t^{n+1/2}
+     av2= flx(i,j,k,fdim+1)                 !time centered |A|^{n+1/2}/2
+     den= flx(i,j,k,fdim)  !den^{n+1/2}
+     pp(1:curr_ndim)= flx(i,j,k,1:curr_ndim) !p momenta at t^{n+1/2}
      gam2=1.+dot_product(pp(1:curr_ndim),pp(1:curr_ndim))
      gam2=gam2+av2
      gam_inv= 1./sqrt(gam2)
@@ -2140,8 +2169,8 @@
    end do
   endif
  !In curr(1:curr_ndim) exit  Dt*J^{n+1/2}
- end subroutine env_fluid_curr_accumulate
-
+ end subroutine fluid_curr_accumulate
+!=========================================
  subroutine set_env_momentum_density_flux(uv,ef,curr,eb_tot,flx,i1,i2,j1,j2,k1,k2)
   real(dp),intent(in) :: uv(:,:,:,:),ef(:,:,:,:)
   real(dp),intent(inout) :: curr(:,:,:,:)
@@ -2172,7 +2201,7 @@
      gam2=1.+dot_product(pp(1:curr_ndim),pp(1:curr_ndim))+curr(i,j,k,1)
      gam_inv= 1./sqrt(gam2)
      pp(1:curr_ndim)=gam_inv*pp(1:curr_ndim)!(vx,vy,vz)=pp/gam at time t^n
-     curr(i,j,k,1)=gam_inv*den         !n/gam the sorce of envelope equation
+     curr(i,j,k,1)=gam_inv*den         !n/gam fluid contribution of the sorce of envelope equation
      do ic=1,curr_ndim
       eb_tot(i,j,k,ic)=eb_tot(i,j,k,ic)+0.5*gam_inv*curr(i,j,k,ic+1)  !Envelope grad|A|^2/(4*gam_p)
       flx(i,j,k,fdim+ic)=gam_inv*uv(i,j,k,ic)  !(vx,vy,vz)
@@ -2182,10 +2211,11 @@
   end do
   end subroutine set_env_momentum_density_flux
 !=================================
- subroutine env_lpf2_evolve(dt_loc,it_loc)
+ subroutine env_lpf2_evolve(dt_loc,it_loc,initial_time)
 
  real(dp),intent(in) :: dt_loc
  integer,intent(in) :: it_loc
+ logical,intent(in) :: initial_time
  integer :: np,ic,nyf,nzf,n_st
  integer :: lp,i1,j1,k1,i2,id_ch
  real(dp) :: xm,ym,zm,Ltz,ef2_ion,loc_ef2_ion(2)
@@ -2265,7 +2295,7 @@
   call env_amp_prepare(env,jc,i1,i2,j1,nyf,k1,nzf,2,2,2)
  endif
   !======================================
- ! exit jc(1)=|a|^2/2 at t^n
+  ! exit jc(1)=|a|^2/2 at t^n
   !      jc(2:4)=grad|a|^2/2 at t^n
   ! For two-color |A|= |A_0|+|A_1|
   !======================================
@@ -2274,34 +2304,35 @@
   !exit ebfp(1:3)=q*[E+F] ebfp(4:6)=q*B/gamp, ebfp(7)=wgh/gamp at t^n
   !Lorentz force already multiplied by particle charge
   !jc(1:4) not modified
- !====================
- call lpf_env_momenta(spec(ic),ebfp,np,dt_loc,Ltz)
+  !====================
+  call lpf_env_momenta(spec(ic),ebfp,np,dt_loc,Ltz)
   ! Updates particle momenta P^{n-1/2} => P^{n+1/2}
   ! stores in ebfp(1:3)=old (x,y,z)^n ebfp(7)=wgh/gamp >0
- !======================
+  !======================
   if(Hybrid)then
+ !+++++++++++++++++++++++++++++++++++++++++++++++++++++++
    call set_env_momentum_density_flux(up,ebf,jc,ebf0,flux,i1,i2,j1,nyf,k1,nzf)
     !exit jc(1)=q^2*n/gam, jc(2:4) ponderomotive force on a grid
-    !ebf0= total fields 
+    !ebf0= total fields flux(1:4)=(P,den)^n 
+!============================
+   call update_adam_bash_fluid_variables(up,up0,flux,ebf0,dt_loc,i1,i2,j1,nyf,k1,nzf,Ltz,initial_time)
+   ! In up exit updated momenta-density variables u^{n+1}
+   ! in  u0^{n} stores Dt*F(u^n), in flux(1:fdim)=(P,den)^{n+1/2}
 
-   call update_lpf2_fluid_variables(up,up0,flux,ebf0,dt_loc,i1,i2,j1,nyf,k1,nzf,Ltz)
-   ! In up,up0 exit updated momenta-density variables (u^{n+1}, u0^{n})
+   flux(i1:i2,j1:nyf,k1:nzf,curr_ndim+2)=jc(i1:i2,j1:nyf,k1:nzf,1)
 
-   flux(i1:i2,j1:nyf,k1:nzf,1)=jc(i1:i2,j1:nyf,k1:nzf,1)
-
-   ! in flux(1) exit the fluid contribution of the sorce term q^2*n/gam
+   ! in flux(fdim+1) exit the fluid contribution of the sorce term q^2*n/gam
    ! for the envelope field solver
   endif
- jc(:,:,:,1)=0.0
- call set_env_density(ebfp,jc,np,curr_ndim,1,xm,ym,zm)
-
- call env_den_collect(jc,i1,i2,j1,nyf,k1,nzf)
+  jc(:,:,:,1)=0.0
+  call set_env_density(ebfp,jc,np,curr_ndim,1,xm,ym,zm)
+  call env_den_collect(jc,i1,i2,j1,nyf,k1,nzf)
   ! in jc(1)the particle contribution of the source term <q^2*n/gamp>
   ! to be added to the fluid contribution if (Hybrid)
   jc(i1:i2,j1:nyf,k1:nzf,3)=jc(i1:i2,j1:nyf,k1:nzf,1)
   if(Hybrid)then
    jc(i1:i2,j1:nyf,k1:nzf,3)=jc(i1:i2,j1:nyf,k1:nzf,3)+&
-                             flux(i1:i2,j1:nyf,k1:nzf,1)
+                             flux(i1:i2,j1:nyf,k1:nzf,curr_ndim+2)
   endif
 !===================
  ! in the envelope equation (A^{n-1},A^n)==> (A^n,A^{n+1})
@@ -2322,28 +2353,30 @@
  endif
  ! In jc(1)= F= |A|^2/2 +|A_1|/2 at t^{n+1/2}  in jc(2:4) grad[F]
  if(Hybrid)then
-  flux(i1:i2,j1:nyf,k1:nzf,curr_ndim+1)=jc(i1:i2,j1:nyf,k1:nzf,1)
+  flux(i1:i2,j1:nyf,k1:nzf,curr_ndim+2)=jc(i1:i2,j1:nyf,k1:nzf,1)
   !stores in flux()
  endif
-  call set_env_interp(jc,spec(ic),ebfp,np,curr_ndim,xm,ym,zm)
+  call set_env_grad_interp(jc,spec(ic),ebfp,np,curr_ndim,xm,ym,zm)
   !=============================
   ! Exit p-interpolated field variables
   ! at time level t^{n+1/2} and positions at time t^n
   ! in ebfp(1:3)=grad|A|^2/2 ebfp(4)=|A|^2/2 in 3D
-  ! in ebfp(1:2)=grad|A|^2/2 ebfp(3)=|A|^2/2 in 2D
+  ! in ebfp(1:2)=graa|A|^2/2 ebfp(3)=|A|^2/2 in 2D
   !=====================================
    call lpf_env_positions(spec(ic),ebfp,np,dt_loc,vbeam)
    if(ompe==0.0)return
   !===========================
   ! ebfp(1:3) dt*V^{n+1/2}  ebfp(4:6) old positions for curr J^{n+1/2}
   ! ebfp(7)=dt*gam_inv
- !==============================
- jc(:,:,:,:)=0.0
+  !==============================
+  jc(:,:,:,:)=0.0
   call curr_accumulate(spec(ic),ebfp,jc,1,np,iform,n_st,xm,ym,zm)
  !===========================
- call curr_mpi_collect(jc,i1,i2,j1,nyf,k1,nzf)
+  call curr_mpi_collect(jc,i1,i2,j1,nyf,k1,nzf)
  if(Hybrid)then
-  call env_fluid_curr_accumulate(up,up0,flux,jc,dt_loc,i1,i2,j1,nyf,k1,nzf)
+  !In flux(1:fdim+1) are stored fluid (P,den) at t^{n+1/2}
+  !In flux(fdim+1) is stored |A|^2/2 at t^{n+1/2}
+  call fluid_curr_accumulate(flux,jc,dt_loc,i1,i2,j1,nyf,k1,nzf)
   !Computes fluid contribution => J^{n+1/2} and adds to particle contribution
  endif
  !====================
@@ -2506,7 +2539,7 @@
   endif
   call curr_mpi_collect(jc,i1,i2,j1,nyf,k1,nzf)
   call update_rk4_fields(ebf,ebf0,ebf1,jc,&
-   vbeam,dt_loc,i1,i2,j1,nyf,k1,nzf,lps)
+                                   vbeam,dt_loc,i1,i2,j1,nyf,k1,nzf,lps)
  end do
  else
  do lps=1,rk
@@ -2523,9 +2556,13 @@
  real(dp),intent(in) :: t_loc,dt_loc
  integer,intent(in) :: iter_loc,t_ord
  logical,parameter :: mw=.false.
+ logical :: init_time
  !+++++++++++++++++++++++++++++++++
  !for vbeam >0 uses the xw=(x+vbeam*t)
  !x=xi=(xw-vbeam*t) fixed
+ !+++++++++++++++++++++++++++++++++
+ init_time=.false.
+ if(t_loc<1.e-05)init_time=.true.
  if(w_speed>0.0)then ! moves the computational box with w_speed>0.
   if(iter_loc==0)call LP_window_xshift(dt_loc,w_sh,iter_loc)
   if(t_loc>=wi_time.and.t_loc < wf_time)then
@@ -2544,7 +2581,7 @@
  select case(t_ord)
   !=========================
  case(2)
-  call env_lpf2_evolve(dt_loc,iter_loc)
+  call env_lpf2_evolve(dt_loc,iter_loc,init_time)
  case(4)
   call env_rk_evolve(dt_loc,t_ord)
  end select
@@ -2559,6 +2596,46 @@
  !==============================
  ! Leap-frog integrators
  !===========================
+ subroutine eb_fields_collect(ef,efb1,efb2,ef_tot,nfield)
+  real(dp),intent(in) :: ef(:,:,:,:),efb1(:,:,:,:),efb2(:,:,:,:)
+  real(dp),intent(inout) :: ef_tot(:,:,:,:)
+  integer,intent(in) :: nfield
+
+  ef_tot(:,:,:,1:nfield)=ef(:,:,:,1:nfield)+efb1(:,:,:,1:nfield)
+  ef_tot(:,:,:,1:3)=ef_tot(:,:,:,1:3)+efb2(:,:,:,1:3)
+  if(nfield ==6)then
+   ef_tot(:,:,:,5:6)=ef_tot(:,:,:,5:6)+efb2(:,:,:,5:6)
+  endif
+ end subroutine eb_fields_collect 
+!=============================
+ subroutine set_eb_momentum_density_flux(uv,flx,i1,i2,j1,j2,k1,k2)
+  real(dp),intent(in) :: uv(:,:,:,:)
+  real(dp),intent(inout) :: flx(:,:,:,:)
+  integer,intent(in) :: i1,i2,j1,j2,k1,k2
+  integer :: fdim,ic,i,j,k
+  real(dp) :: den,pp(3),gam2,gam_inv
+!================ set density and momenta flux
+  fdim=curr_ndim+1
+  flx(i1:i2,j1:j2,k1:k2,1:fdim)=uv(i1:i2,j1:j2,k1:k2,1:fdim)
+  !stores the modentum-density at time level t^n
+!=====================
+   !NON CONSERVATIVE flx(1:4)=uv(1:4)=[Px,Py,Pz,den] flx(5:8)=[vx,vy,vz]
+  do k=k1,k2
+   do j=j1,j2
+    do i=i1,i2
+     den=uv(i,j,k,fdim)
+     pp(1:curr_ndim)=uv(i,j,k,1:curr_ndim)      !p momenta
+     gam2=1.+dot_product(pp(1:curr_ndim),pp(1:curr_ndim))
+     gam_inv= 1./sqrt(gam2)
+     pp(1:curr_ndim)=gam_inv*pp(1:curr_ndim)!(vx,vy,vz)=pp/gam at time t^n
+     do ic=1,curr_ndim
+      flx(i,j,k,fdim+ic)=gam_inv*uv(i,j,k,ic)  !(vx,vy,vz)
+     end do
+    end do
+   end do
+  end do
+ end subroutine set_eb_momentum_density_flux
+!=============================
  subroutine lpf2_eb_evolve(dt_loc,iter_loc,initial_time)
 
  real(dp),intent(in) :: dt_loc
@@ -2587,9 +2664,11 @@
  !====================
  !Ghost cell values for field assignement on particles
  vb=vbeam
- call pfields_prepare(ebf,i1,i2,j1,j2,k1,k2,nfield,1,1)
- call pfields_prepare(ebf_bunch,i1,i2,j1,j2,k1,k2,nfield,1,1)
- call pfields_prepare(ebf1_bunch,i1,i2,j1,j2,k1,k2,nfield,1,1)
+ call eb_fields_collect(ebf,ebf1_bunch,ebf_bunch,ebf0,nfield)
+!   in ebf0() the total fields  bunch+wake
+ call pfields_prepare(ebf0,i1,i2,j1,j2,k1,k2,nfield,2,2)
+ !call pfields_prepare(ebf_bunch,i1,i2,j1,j2,k1,k2,nfield,1,1)
+ !call pfields_prepare(ebf1_bunch,i1,i2,j1,j2,k1,k2,nfield,1,1)
 !======== first new plasma electrons are injected by ionization
  if(Ionization)then
   if(iter_loc==0)then
@@ -2598,8 +2677,9 @@
   do ic=2,nsp_ionz
    np=loc_npart(imody,imodz,imodx,ic)
    if(np>0)then
-     call set_ion_two_Ebfield(ebf,ebf_bunch,ebf1_bunch,spec(ic),&
-                      ebfp,np,n_st,ndim,xm,ym,zm)
+    call set_ion_Efield(ebf0,spec(ic),ebfp,np,n_st,ndim,nsp_run,dt_loc,xm,ym,zm)
+                       !call set_ion_two_Ebfield(ebf,ebf_bunch,ebf1_bunch,spec(ic),&
+                       !                ebfp,np,n_st,ndim,xm,ym,zm)
     if(mod(iter_loc,50)==0)then     !refresh ionization tables
      loc_ef2_ion(1)=maxval(ebfp(1:np,id_ch))
      loc_ef2_ion(1)=sqrt(loc_ef2_ion(1))/514.   !In atomic units
@@ -2613,24 +2693,18 @@
                         spec(ic),ebfp,np,ic,iter_loc,0,deb_inv)
    endif
   end do
-  !======== injects new electrons, with weights equal to ion weights
+  !======== injects new electrons, with weights equal to ion weights 
  endif
 !=======================
 ! STEP 1
-!Advances momenta and position of plasma particles
+!Advances momenta and position of plasma particles using total field
 !==========================
   jc(:,:,:,:)=0.0
   do ic=1,nsp_run
    np=loc_npart(imody,imodz,imodx,ic)
    Ltz=Lorentz_fact(ic)
    if(np >0)then
-    if(nfield<6)then       !2D (x,y) geometry
-    call set_part2d_two_bfield_acc(ebf,ebf_bunch,ebf1_bunch,&
-                    spec(ic),ebfp,np,n_st,xm,ym)
-    else
-     call set_part3d_two_bfield_acc(ebf,ebf_bunch,ebf1_bunch,&
-                    spec(ic),ebfp,1,np,n_st,xm,ym,zm)
-    endif
+    call set_lpf_acc(ebf0,spec(ic),ebfp,np,ndim,nfield,n_st,xm,ym,zm)
     call field_charge_multiply(spec(ic),ebfp,1,np,nfield)
 !==================================
    !EXIT ebfp(1:6)  total=wake + bunch fields assigned to plasma particle position
@@ -2638,57 +2712,62 @@
     if(initial_time)call init_lpf_momenta(spec(ic),ebfp,1,np,dt_loc,Ltz)
     call lpf_momenta_and_positions(spec(ic),ebfp,1,np,dt_loc,vb,Ltz)
 !  EXIT p^{n+1/2}, v^{n+1/2}, x^{n+1}
-!  in x^{n+1} are stored in ebfp(1:3) old x^n are stored in ebfp((4:6)
+!  in x^{n+1} are stored in ebfp(1:3) old x^n are stored in ebfp((4:6)  
 !  in ebfp(7) is stored dt_loc/gamma
    call curr_accumulate(spec(ic),ebfp,jc,1,np,iform,n_st,xm,ym,zm)
- endif
+   endif
   end do
   call curr_mpi_collect(jc,i1,i2,j1,j2,k1,k2)
 ! EXIT current density jc(1:3) due to plasma particles density and velocity at
 ! time t^{n+1/2}
+!======================================================
+ if(Hybrid)then
+  call set_eb_momentum_density_flux(up,flux,i1,i2,j1,j2,k1,k2)
+!============================
+  ! in the flux() array exit: (px,py,pz,den,vx,vy,vz) at t^n
+!============================
+  call update_adam_bash_fluid_variables(&
+                        up,up0,flux,ebf0,dt_loc,i1,i2,j1,j2,k1,k2,Ltz,initial_time)
+   ! In up exit updated momenta-density variables u^{n+1}
+   ! in  u0^{n} stores Dt*F(u^n), in flux(1:fdim)=(P,den)^{n+1/2}
+   ! In flux(1:curr_ndim+1) are stored fluid (P,den) at t^{n+1/2}
+   flux(i1:i2,j1:j2,k1:k2,curr_ndim+2)=0.0
+  call fluid_curr_accumulate(flux,jc,dt_loc,i1,i2,j1,j2,k1,k2)
+  !Computes fluid contribution => J_f^{n+1/2} and adds to particle contribution
+!  ===============  END plasma fluid section
+ endif
+ call advance_lpf_fields(ebf,jc,dt_loc,vbeam,i1,i2,j1,j2,k1,k2,1) 
 !==============================
 ! STEP 2
 !Advances momenta and position of bunch particles
 !==========================
- jb(:,:,:,:)=0.0
+ jc(:,:,:,:)=0.0
  do ic=1,nsb
   np=loc_nbpart(imody,imodz,imodx,ic)
   Ltz=Lorentz_bfact(ic)
   if(np >0)then
-   if(nfield<6)then
-    call set_part2d_two_bfield_acc(ebf,ebf_bunch,ebf1_bunch,&
-                   bunch(ic),ebfb,np,n_st,xm,ym)
-   else
-    if(L_Bpoloidal)then
-     call set_part3d_three_bfield_acc(ebf,ebf_bunch,&
-                               ebf1_bunch,ebf0_bunch,bunch(ic),ebfb,1,np,n_st,xm,ym,zm)
-    else
-     call set_part3d_two_bfield_acc(ebf,ebf_bunch,&
-    ebf1_bunch,bunch(ic),ebfb,1,np,n_st,xm,ym,zm)
-    endif
-   endif
-   call field_charge_multiply(bunch(ic),ebfb,1,np,nfield)
+   call set_lpf_acc(ebf0,bunch(ic),ebfb,np,ndim,nfield,n_st,xm,ym,zm)
+  endif
+  call field_charge_multiply(bunch(ic),ebfb,1,np,nfield)
 !==================================
    !EXIT ebfb(1:6)  total=wake + bunch fields assigned to bunch particle position
 !==================================
-   if(initial_time)call init_lpf_momenta(bunch(ic),ebfb,1,np,dt_loc,Ltz)
-   call lpf_momenta_and_positions(bunch(ic),ebfb,1,np,dt_loc,vb,Ltz)
-   if(L_EMBunchEvolution .and. ompe>0.0) call curr_accumulate(bunch(ic),ebfb,jb,1,np,iform,n_st,xm,ym,zm)
-
-  endif
+  if(initial_time)call init_lpf_momenta(bunch(ic),ebfb,1,np,dt_loc,Ltz)
+  call lpf_momenta_and_positions(bunch(ic),ebfb,1,np,dt_loc,vb,Ltz)
+  call curr_accumulate(bunch(ic),ebfb,jc,1,np,iform,n_st,xm,ym,zm)
  enddo
- call curr_mpi_collect(jb,i1,i2,j1,j2,k1,k2)
+ call curr_mpi_collect(jc,i1,i2,j1,j2,k1,k2)
 ! EXIT current density jb(1:3) due to bunch particles density and velocity at
 ! time t^{n+1/2}
 ! STEP3  advances fields
 !=======================
- if(L_EMBunchEvolution) call advance_lpf_fields(ebf,jc,dt_loc,vbeam,i1,i2,j1,j2,k1,k2,1)
  !======================= boundary ibx as for Maxwell equation
  if(ibeam > 0)then
-  call advect_bunch_fields(ebf_bunch,jb,&
+  call advect_bunch_fields(ebf_bunch,jc,&
                           bet0,dt_loc,i1,i2,j1,j2,k1,k2,initial_time)
+  !ebf_bunch(1:6)=[Ex,Ey,Ez,Jbx,By,Bz], Bx=0
  endif
- call advance_lpf_fields(ebf1_bunch,jb,dt_loc,vbeam,i1,i2,j1,j2,k1,k2,1)  !here reflecting bds
+ call advance_lpf_fields(ebf1_bunch,jc,dt_loc,vbeam,i1,i2,j1,j2,k1,k2,1)  !here reflecting bds
  !=========================
  end subroutine lpf2_eb_evolve
  !================================

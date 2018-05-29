@@ -34,9 +34,9 @@
  integer,intent(in) :: it_loc
  real(dp),intent(in) :: tloc
  character(13) :: fname='             '
- integer :: np,ic,lun,i,j
+ integer :: np,ic,lun,i,j,k
  integer :: nxf_loc,nyf_loc,nzf_loc,nf
- integer :: nxfl,i2b,j2b,k2b,nbf,env_cp
+ integer :: i2b,j2b,k2b,nbf,env_cp
  real(dp) :: rdata(10)
  integer :: ndata(10),nps_loc(4),nbs_loc(5)
  !==============
@@ -73,7 +73,8 @@
  ndata(7)=npty
  ndata(8)=npt_buffer(1)
  ndata(9)=size(x)
- ndata(10)=nxfl
+ ndata(10)=nxf
+ !if(pe0)write(6,*)'dump data',ndata(1:10)
  !==============
  lun=10
  open (lun,file='dumpRestart/'//fname//'.bin',form='unformatted',status='unknown')
@@ -84,10 +85,13 @@
  i=ndata(9)
  write(lun)x(1:i)
  !-----------------------------
- if(targ_end > xmax)then
-  if(Hybrid)then
-   write(lun)fluid_x_profile(1:nxfl)
+ if(Hybrid)then
+  if(nxf >0)then
+   write(lun)fluid_x_profile(1:nxf)
+   write(lun)fluid_yz_profile(1:nyf_loc,1:nzf_loc)
   endif
+ endif
+ if(targ_end > xmax)then
   do i=1,nsp
    write(lun)loc_npty(i),loc_nptz(i)
   end do
@@ -96,16 +100,15 @@
     write(lun)xpt(j,i),wghpt(j,i)
    end do
    do j=1,loc_npty(1)
-    write(lun)loc_ypt(j,i),loc_wghy(j,i)
+    write(lun)loc_ypt(j,i)
    end do
-  end do
-  if(ndim==3)then
-   do i=1,nsp
-    do j=1,loc_nptz(1)
-     write(lun)loc_zpt(j,i),loc_wghz(j,i)
+   do k=1,loc_nptz(1)
+    write(lun)loc_zpt(j,i)
+    do j=1,loc_npty(1)
+     write(lun)loc_wghyz(j,k,i)
     end do
    end do
-  endif
+  end do
  endif
  !-----------------------
  !========================
@@ -122,8 +125,7 @@
   
  if(Beam)then
   write(lun)ebf_bunch(1:i2b,1:j2b,1:k2b,1:nbf)
-  if(ibeam==1)write(lun)ebf1_bunch(1:i2b,1:j2b,1:k2b,1:nbf)
-  if(Pbeam)write(lun)ebf0_bunch(1:i2b,1:j2b,1:k2b,1:3)
+  if(ibeam>0)write(lun)ebf1_bunch(1:i2b,1:j2b,1:k2b,1:nbf)
   if(L_Bpoloidal)write(lun)ebf0_bunch(1:i2b,1:j2b,1:k2b,1:3)
  endif
  !========================================Particle section
@@ -165,9 +167,9 @@
  real(dp),intent(out) :: tloc
  character(13) :: fname='             '
  integer :: np,nps_loc(4),nbs_loc(5),np_max
- integer :: n1_old,lun,i,j,ic
+ integer :: n1_old,lun,i,j,k,ic
  integer :: nxf_loc,nyf_loc,nzf_loc,nf,npt_max
- integer :: i2b,j2b,k2b,nbf,env_cp,nxfl
+ integer :: i2b,j2b,k2b,nbf,env_cp
  integer :: n1_loc,n2_loc,n3_loc,nf_loc
  real(dp) :: rdata(10)
  integer :: ndata(10)
@@ -201,12 +203,20 @@
  nptz=npty
  npt_max=ndata(8)
  n1_old=ndata(9)
- nxfl=ndata(10)
+ nxf=ndata(10)
  !=======================================
  !=======================================
  allocate(xx(n1_old))
  i=ndata(9)
  read(lun)xx(1:i)
+ if(Hybrid)then
+  if(nxf>0)then
+   allocate(fluid_x_profile(nxf))
+   allocate(fluid_yz_profile(1:n2_loc,1:n3_loc))
+   read(lun)fluid_x_profile(1:nxf)
+   read(lun)fluid_yz_profile(1:n2_loc,1:n3_loc)
+  endif
+ endif
  !===================
  ! x() defined on the grid module starting from x(1)=0.0
  if(xx(1) >0.0)then
@@ -221,33 +231,28 @@
  endif
  !===================
  if(targ_end > xmax)then
-  if(nxfl>0)then
-   read(lun)fluid_x_profile(1:nxfl)
-  endif
   do i=1,nsp
    read(lun)loc_npty(i),loc_nptz(i)
   end do
   allocate(xpt(nptx_max,nsp))
   allocate(wghpt(nptx_max,nsp))
   allocate(loc_ypt(loc_npty(1),nsp))
-  allocate(loc_wghy(loc_npty(1),nsp))
+  allocate(loc_zpt(loc_nptz(1),nsp))
+  allocate(loc_wghyz(loc_npty(1),loc_nptz(1),nsp))
   do i=1,nsp
    do j=1,nptx_max
     read(lun)xpt(j,i),wghpt(j,i)
    end do
    do j=1,loc_npty(1)
-    read(lun)loc_ypt(j,i),loc_wghy(j,i)
+    read(lun)loc_ypt(j,i)
    end do
-  end do
-  if(ndim==3)then
-   allocate(loc_zpt(loc_nptz(1),nsp))
-   allocate(loc_wghz(loc_nptz(1),nsp))
-   do i=1,nsp
-    do j=1,loc_nptz(1)
-     read(lun)loc_zpt(j,i),loc_wghz(j,i)
+   do k=1,loc_nptz(1)
+    read(lun)loc_zpt(j,i)
+    do j=1,loc_npty(1)
+     read(lun)loc_wghyz(j,k,i)
     end do
    end do
-  endif
+  end do
  endif
  !=========================
  !=============== field dimensions
@@ -274,8 +279,7 @@
  endif
  if(Beam)then
   read(lun)ebf_bunch(1:i2b,1:j2b,1:k2b,1:nbf)
-  if(ibeam==1)read(lun)ebf1_bunch(1:i2b,1:j2b,1:k2b,1:nbf)
-  if(Pbeam)read(lun)ebf0_bunch(1:i2b,1:j2b,1:k2b,1:3)
+  if(ibeam >0)read(lun)ebf1_bunch(1:i2b,1:j2b,1:k2b,1:nbf)
   if(L_Bpoloidal)read(lun)ebf0_bunch(1:i2b,1:j2b,1:k2b,1:3)
  endif
  !=========== end field section
