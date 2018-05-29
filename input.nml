@@ -1,0 +1,136 @@
+
+&GRID
+	nx               = 2000,!400
+	ny               = 4000,!400
+	nz               = 1,
+	ny_targ          = 400,
+	k0               = 6.0,          !Lx=60 
+	yx_rat           = 1.4,           !Ly= 60 (3w0= 30.4)
+	zx_rat           = 1.4,
+/
+
+&SIMULATION
+	LPf_ord          = 2,
+	der_ord          = 3,
+	str_flag         = 0,
+	iform            = 0,
+	model_id         = 4,
+	dmodel_id        = 1,
+        ibx              = 0,
+        iby              = 0,
+        ibz              = 0,
+        ibeam            = 1,
+/
+
+&TARGET_DESCRIPTION
+	nsp              = 1,
+	nsb              = 1,
+	ionz_lev         = 0,
+        ionz_model       = 2,
+        ion_min(1)       = 5,
+	ion_min(2)       = 1,
+        ion_min(3)       = 1,
+        ion_max(1)       = 7,
+        ion_max(2)       = 1,
+        ion_max(3)       = 1,
+	atomic_number(1) = 7,
+	atomic_number(2) = 1,
+        atomic_number(3) = 1,
+	mass_number(1)   = 14.0,
+	mass_number(2)   = 1.0,
+	mass_number(3)   = 1.0,
+        t0_pl(1)         = 0.0,
+        t0_pl(2)         = 0.0,
+        t0_pl(3)         = 0.0,
+        t0_pl(4)         = 0.0,
+	np_per_xc(1)     = 1,
+	np_per_xc(2)     = 1,
+	np_per_xc(3)     = 1,
+	np_per_xc(4)     = 1,
+	np_per_xc(5)     = 1,
+	np_per_xc(6)     = 1,
+	np_per_yc(1)     = 1,
+	np_per_yc(2)     = 1,
+	np_per_yc(3)     = 1,
+	np_per_yc(4)     = 1,
+	np_per_yc(5)     = 1,
+	np_per_yc(6)     = 1,
+	lpx(1)           = 0.0,
+	lpx(2)           = 0.0,
+	lpx(3)           = 0.0,
+	lpx(4)           = 1.0,
+	lpx(5)           = 0.0,
+	lpx(6)           = 0.0,
+	lpx(7)           = 40000.0,
+	lpy(1)           = 0.0,
+	lpy(2)           = 0.0,
+	n_over_nc        = 1.e-02 
+	np1              = 0.0,
+	np2              = 0.0,
+        r_c              = 0.0
+/
+
+&LASER
+        G_prof           =.false.
+        nb_laser         = 1,
+	t0_lp            = 0.,
+	xc_lp            = 35.,
+	tau_fwhm         = 21.3,    !tau  wx=33.0 for tau=40
+	w0_y             = 12.,
+	a0               = 1.,     
+	lam0             = 0.8,
+        lp_delay         = 26.,
+        lp_offset        = 0.0,      !xc1_lp=xc_lp-(nb_laser-1)*lp_delay-lp_offset
+	t1_lp            = 100.,
+	tau1_fwhm        = 15.0       
+	w1_y             = 6.0,
+	a1               = 0.41,
+	lam1             = 0.4,
+/
+
+&MOVING_WINDOW
+	w_sh             = 20,
+	wi_time          = 0.,
+	wf_time          = 2000.0,
+	w_speed          = 1.0
+/
+
+&OUTPUT
+	nouts            = 1,
+	iene             = 1,
+	nvout            = 0,
+	nden             = 0,
+	npout            = 0,
+	nbout            = 0,
+	jump             = 2,
+	pjump            = 2,
+        gam_min          = 1.0
+	xp0_out          = 20.,
+	xp1_out          = 90.0,
+	yp_out           = 10.,
+	tmax             = 25.0,!250.0
+	cfl              = 0.8,
+	new_sim          = 0,
+	id_new           = 0,
+	dump             = 0,
+	P_tracking       =.false.
+/
+
+&TRACKING
+	tkjump           = 4,
+	nkjump           = 8,
+        txmin            = 103.,
+        txmax            = 104.,
+        tymin            =-20.,
+        tymax            = 20.,
+        tzmin            =-20.,
+        tzmax            = 20.,
+        t_in             = 0.,
+        t_out            = 200.,
+/
+&MPIPARAMS
+        nprocx           = 1,
+        nprocy           = 1,
+        nprocz           = 1, 
+/
+
