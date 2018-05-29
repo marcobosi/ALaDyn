@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8.7)
-project(ALaDyn)
+project(ALaDyn2)
 enable_language(Fortran)
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 11)
@@ -79,6 +79,15 @@ if(FORCE_STATIC_LINK)
   string(APPEND CMAKE_Fortran_LINK_FLAGS " -static")
 endif()
 
+find_package(OpenMP)
+if(OPENMP_FOUND)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+	set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} ${OpenMP_Fortran_FLAGS}")
+	set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${OpenMP_Fortran_FLAGS}")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
+
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(MPI REQUIRED)
 if (USING_INTEL_COMPILER AND NOT FORCE_FFTW)
@@ -119,16 +128,14 @@ add_executable (ALaDyn
   src/parallel.F90
   src/pic_rutil.f90
   src/der_lib.f90
-  src/grid_fields.f90
+  src/grid_fields.F90
   src/pdf_moments.f90
   src/pic_in.f90
   src/pic_out.f90
   src/pic_out_util.f90
   src/pic_dump.f90
   src/pic_evolve_in_time.f90
-  src/pwfa_bunch_field_calculation.F90
   src/read_input.f90
-  src/pwfa_output_addons.f90
 )
 
 add_library(cpp_folder_tree STATIC src/cpp_folder_tree.cpp)
@@ -143,6 +150,7 @@ target_link_libraries(ALaDyn
   ${MPI_LIBRARIES}
   ${Boost_LIBRARIES}
 )
+
 
 if (NOT USING_INTEL_COMPILER OR FORCE_FFTW)
   target_link_libraries(ALaDyn ${FFTW_LIBRARY})
