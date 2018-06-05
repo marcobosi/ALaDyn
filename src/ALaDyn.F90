@@ -51,7 +51,7 @@
 
  !----------Test omp
  !writing all the data in their files
- open(1,file=filename,status='new')
+ open(1,file=filename)
  !------------
  
  
@@ -86,6 +86,7 @@
  !call timing
  
  !----------Test omp
+ write(1,*) content
  close(1)
  !------------
  call mpi_barrier(comm,error)
