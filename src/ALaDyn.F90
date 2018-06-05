@@ -48,6 +48,10 @@
  !----------------TEST OUTPUT OMP
  allocate(content(10000))
  write(filename,'(a,i2.2,a)')"Test",mype,".txt"!mype is mpi rank, adaptive output filename
+
+ !----------Test omp
+ !writing all the data in their files
+ open(1,file=filename,status='new')
  !------------
  
  
@@ -75,9 +79,6 @@
  !call timing
  
  !----------Test omp
- !writing all the data in their files
- open(1,file=filename,status='new')
- write(1,*) filename,content
  close(1)
  !------------
  call mpi_barrier(comm,error)
