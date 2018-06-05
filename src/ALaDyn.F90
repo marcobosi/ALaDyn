@@ -77,7 +77,7 @@
  !----------Test omp
  !writing all the data in their files
  open(1,file=filename,status='new')
- write(1,*) content
+ write(1,*) filename
  close(1)
  !------------
  call mpi_barrier(comm,error)
