@@ -500,7 +500,7 @@
    !---------------------------------
    call system_clock(unix_time_now1)
    write(6,'(a16,f12.3,a10,i15)')' Time elapsed = ',unix_time_now-unix_time_begin,', nptot = ', nptot_global
-   write(6,'es8.2') real(unix_time_now1-unix_time_begin1)/real(counter1)
+   write(6,'(es8.2)') real(unix_time_now1-unix_time_begin1)/real(counter1)
    if(prl)then
     if(Part)then
      write(6,'(a21,i10,a1,i10)')' part min/max distr. ',np_min,' ',np_max
