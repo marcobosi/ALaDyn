@@ -44,8 +44,8 @@
 
  call start
 
- !omp parallel
- !omp single default(private)
+ !$omp parallel
+ !$omp single
  call cpu_time(unix_time_now)
  unix_time_begin=unix_time_now
  unix_time_last_dump=unix_time_begin
@@ -63,8 +63,8 @@
  case(3)
   call BUNCH_cycle
  end select
- !omp end single
- !omp end parallel
+ !$omp end single
+ !$omp end parallel
  !call timing
  call mpi_barrier(comm,error)
  call final_run_info

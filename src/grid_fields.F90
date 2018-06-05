@@ -4520,13 +4520,14 @@
  endif
  !=================================
  call system_clock(count_rate=rate)
- !omp end single
- !$omp parallel
+ !$omp end single
+ !omp parallel
  print*,OMP_GET_THREAD_NUM(),OMP_GET_NUM_THREADS()
- !$omp end parallel
+ !omp end parallel
  call cpu_time(t1)
  call system_clock(it1)
- !$omp parallel do default(shared) private(j,jj,i,ii,k,sdhy,sdhx) schedule(static,8)
+ !omp parallel do default(shared) private(j,jj,i,ii,k,sdhy,sdhx) schedule(static,8)
+ !$omp do default(shared) private(j,jj,i,ii,k,sdhy,sdhx) schedule(static,8)
  do j=j1,j2
   !print*,OMP_GET_THREAD_NUM(),OMP_GET_NUM_THREADS()!OMP_GET_MAX_THREADS(),
   !print*,omp_in_parallel()
@@ -4548,12 +4549,13 @@
    end do
   end do
  end do
- !$omp end parallel do
+ !omp end parallel do
+ !$omp end do
+ !$omp single
  call cpu_time(t2)
  call system_clock(it2)
  !print*,k2,k1,(j2-j1),(j2-j1)*(n1p-i1)
  print*,t2-t1,real(it2-it1)/real(rate),j1,j2
- !omp single
  if(nfield <6)return
  if(ndim==3)then
   do k=k1,k2
