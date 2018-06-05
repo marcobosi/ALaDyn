@@ -55,7 +55,11 @@
  integer :: comm,status(mpi_status_size),error,mpi_sd
  logical :: pex0,pex1
  integer :: coor(3),comm_col(3),color(3)
+ 
+ 
 
+ 
+ 
  contains
 
 

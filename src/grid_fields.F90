@@ -33,6 +33,14 @@
  real(dp),allocatable :: ww(:),ww0(:,:),sf1(:),sf2(:),wr(:,:),wl(:,:),var(:,:)
  real(dp) :: sigm_opt
  real(dp) :: mat_env_coeff(5,5)
+ 
+ 
+ !----------------TEST OUTPUT OMP
+ character,allocatable::content(:)!one because it has the execution time of the loop it has always the same number and relies on total time
+ character (len=10)::filename
+ !------------
+ 
+ 
  contains
 
  subroutine w_alloc(opt_der)
@@ -4555,7 +4563,8 @@
  call cpu_time(t2)
  call system_clock(it2)
  !print*,k2,k1,(j2-j1),(j2-j1)*(n1p-i1)
- print*,t2-t1,real(it2-it1)/real(rate),j1,j2
+ !print*,t2-t1,real(it2-it1)/real(rate),j1,j2
+ write(content,'(es8.2)') real(it2-it1)/real(rate)
  if(nfield <6)return
  if(ndim==3)then
   do k=k1,k2

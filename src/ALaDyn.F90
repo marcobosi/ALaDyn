@@ -37,13 +37,20 @@
  real(dp) :: tdia,dtdia,tout,dtout,tstart,mem_max_addr
  real(dp) :: dt_loc
  integer :: t_ind,ic,tk_ind
-
+ 
  mem_psize_max=0.0
  mem_max_addr=0.0
 
 
  call start
-
+ 
+ 
+ !----------------TEST OUTPUT OMP
+ allocate(content(462))
+ write(filename,'(a,i2.2,a)')"Test",mype,".txt"!mype is mpi rank, adaptive output filename
+ !------------
+ 
+ 
  !omp parallel
  !omp single
  call cpu_time(unix_time_now)
@@ -66,6 +73,13 @@
  !omp end single
  !omp end parallel
  !call timing
+ 
+ !----------Test omp
+ !writing all the data in their files
+ open(1,file=filename,status='new')
+ write(1,*) content
+ close(1)
+ !------------
  call mpi_barrier(comm,error)
  call final_run_info
  call end_parallel
