@@ -38,6 +38,9 @@
  integer :: time2dump(1)=0
  real(dp) :: mem_psize_max,dump_t0,dump_t1
  real(dp) :: unix_time_begin, unix_time_now
+ !MULTITHREADING TIME
+ integer(kind=8)::unix_time_begin1, unix_time_now1,counter1,unix_time_last_dump1
+ !------------
  real(dp) :: time_interval_dumps, unix_time_last_dump
  logical :: L_intdiagnostics_pwfa,L_intdiagnostics_classic
  logical :: L_force_singlefile_output
