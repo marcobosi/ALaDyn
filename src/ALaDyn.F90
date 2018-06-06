@@ -46,7 +46,7 @@
  
  
  !----------------TEST OUTPUT OMP
- allocate(content(10000))
+ allocate(content(461))
  write(filename,'(a,i2.2,a)')"Test",mype,".txt"!mype is mpi rank, adaptive output filename
 
  !----------Test omp
