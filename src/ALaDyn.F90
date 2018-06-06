@@ -47,7 +47,7 @@
  
  !----------------TEST OUTPUT OMP
  allocate(content(460))
- write(filename,'(a,i0,a,i2.2,a)')"./test/",mpi_size,"/Test",mype,".txt"!mype is mpi rank, adaptive output filename
+ write(filename,'(a,i2.2,a,i2.2,a)')"./test/",mpi_size,"/Test",mype,".txt"!mype is mpi rank, adaptive output filename
 
  !----------Test omp
  !writing all the data in their files
@@ -501,7 +501,7 @@
    !---------------------------------
    call system_clock(unix_time_now1)
    write(6,'(a16,f12.3,a10,i15)')' Time elapsed = ',unix_time_now-unix_time_begin,', nptot = ', nptot_global
-   write(6,'(es8.2)') real(unix_time_now1-unix_time_begin1)/real(counter1)
+   write(6,'(a,es9.2)')"tempo", real(unix_time_now1-unix_time_begin1)/real(counter1)
    if(prl)then
     if(Part)then
      write(6,'(a21,i10,a1,i10)')' part min/max distr. ',np_min,' ',np_max
@@ -1257,7 +1257,7 @@
   call cpu_time(unix_time_now)
   call system_clock(unix_time_now1)
   write(6,'(a15,f12.3,a10,i15)') 'Time elapsed = ',unix_time_now-unix_time_begin,', nptot = ', nptot_global
-  write(6,'(se8.2)') unix_time_now1-unix_time_begin1
+  write(6,'(se9.2)') "tempo",real(unix_time_now1-unix_time_begin1)/real(counter1)
   write(6,*) 'END OF RUN'
  end if
  end subroutine final_run_info

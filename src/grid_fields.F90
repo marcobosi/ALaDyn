@@ -4530,9 +4530,9 @@
  !=================================
  call system_clock(count_rate=rate)
  !omp end single
- !$omp parallel
- print*,OMP_GET_THREAD_NUM(),OMP_GET_NUM_THREADS()
- !$omp end parallel
+ !omp parallel
+ !print*,OMP_GET_THREAD_NUM(),OMP_GET_NUM_THREADS()
+ !omp end parallel
  call cpu_time(t1)
  call system_clock(it1)
  !$omp parallel do default(shared) private(j,jj,i,ii,k,sdhy,sdhx) schedule(static,8)
