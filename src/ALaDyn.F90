@@ -1255,7 +1255,9 @@
   write (6,'(a7,i6,a5,e11.4,a11,e11.4)') 'iter = ',iter,' t = ',tnow,' last dt = ',dt_loc
   call tot_num_part(nptot_global)
   call cpu_time(unix_time_now)
+  call system_clock(unix_time_now1)
   write(6,'(a15,f12.3,a10,i15)') 'Time elapsed = ',unix_time_now-unix_time_begin,', nptot = ', nptot_global
+  write(6,'(se8.2)') unix_time_now1-unix_time_begin1
   write(6,*) 'END OF RUN'
  end if
  end subroutine final_run_info
