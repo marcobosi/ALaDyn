@@ -4566,6 +4566,7 @@
  !print*,k2,k1,(j2-j1),(j2-j1)*(n1p-i1)
  !print*,t2-t1,real(it2-it1)/real(rate),j1,j2
  write(content(segnalino),'(es8.2)') real(it2-it1)/real(rate)
+ print*,segnalino
  segnalino=segnalino+1
  if(nfield <6)return
  if(ndim==3)then
