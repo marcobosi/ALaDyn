@@ -37,7 +37,7 @@
  
  !----------------TEST OUTPUT OMP
  character (len=10),allocatable::content(:)!one because it has the execution time of the loop it has always the same number and relies on total time
- character (len=10)::filename
+ character (len=20)::filename
  integer::segnalino=1
  !------------
  
