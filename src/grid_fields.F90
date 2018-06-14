@@ -4536,7 +4536,7 @@
  call cpu_time(t1)
  call system_clock(it1)
  !omp parallel do default(shared) private(j,jj,i,ii,k,sdhy,sdhx) schedule(static,8)
- !$omp do default(shared) private(j,jj,i,ii,k,sdhy,sdhx) schedule(static,8)
+ !$omp do private(j,jj,i,ii,k,sdhy,sdhx) schedule(static,8)
  do j=j1,j2
   !print*,OMP_GET_THREAD_NUM(),OMP_GET_NUM_THREADS()!OMP_GET_MAX_THREADS(),
   !print*,omp_in_parallel()
