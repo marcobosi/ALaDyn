@@ -47,19 +47,16 @@
  
  !----------------TEST OUTPUT OMP
  allocate(content(460))
- print*,'a'
- write(filename,'(a,i2.2,a,i2.2,a)')"./test1/",mpi_size,"/Test",mype,".txt"!mype is mpi rank, adaptive output filename
- print*,filename
+ write(filename,'(a,i2.2,a,i2.2,a)')"./test2/",mpi_size,"/Test",mype,".txt"!mype is mpi rank, adaptive output filename
 
  !----------Test omp
  !writing all the data in their files
  open(1,file=filename)
- print*,'a'
  !------------
  
  
- !omp parallel
- !omp single
+ !$omp parallel
+ !$omp single
  call system_clock(count_rate=counter1)
  call system_clock(unix_time_now1)
  unix_time_begin1=unix_time_now1
@@ -84,8 +81,8 @@
  case(3)
   call BUNCH_cycle
  end select
- !omp end single
- !omp end parallel
+ !$omp end single
+ !$omp end parallel
  !call timing
  
  !----------Test omp
