@@ -4529,7 +4529,7 @@
  endif
  !=================================
  call system_clock(count_rate=rate)
- omp end single
+ !$omp end single
  !omp parallel
  !print*,OMP_GET_THREAD_NUM(),OMP_GET_NUM_THREADS()
  !omp end parallel
