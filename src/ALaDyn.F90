@@ -47,11 +47,14 @@
  
  !----------------TEST OUTPUT OMP
  allocate(content(460))
+ print*,'a'
  write(filename,'(a,i2.2,a,i2.2,a)')"./test1/",mpi_size,"/Test",mype,".txt"!mype is mpi rank, adaptive output filename
+ print*,filename
 
  !----------Test omp
  !writing all the data in their files
  open(1,file=filename)
+ print*,'a'
  !------------
  
  
