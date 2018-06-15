@@ -55,8 +55,8 @@
  !------------
  
  
- !$omp parallel
- !$omp single
+ !omp parallel
+ !omp single
  call system_clock(count_rate=counter1)
  call system_clock(unix_time_now1)
  unix_time_begin1=unix_time_now1
@@ -81,8 +81,8 @@
  case(3)
   call BUNCH_cycle
  end select
- !$omp end single
- !$omp end parallel
+ !omp end single
+ !omp end parallel
  !call timing
  
  !----------Test omp
@@ -1257,7 +1257,7 @@
   call cpu_time(unix_time_now)
   call system_clock(unix_time_now1)
   write(6,'(a15,f12.3,a10,i15)') 'Time elapsed = ',unix_time_now-unix_time_begin,', nptot = ', nptot_global
-  write(6,'(se9.2)') "tempo",real(unix_time_now1-unix_time_begin1)/real(counter1)
+  write(6,'(a,se9.2)') "tempo",real(unix_time_now1-unix_time_begin1)/real(counter1)
   write(6,*) 'END OF RUN'
  end if
  end subroutine final_run_info
