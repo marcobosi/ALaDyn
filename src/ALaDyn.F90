@@ -46,19 +46,19 @@
  
  
  !----------------TEST OUTPUT OMP
- allocate(content(460))
- write(filename,'(a,i2.2,a,i2.2,a)')"./test1/",mpi_size,"/Test",mype,".txt"!mype is mpi rank, adaptive output filename
+ !allocate(content(460))
+ !write(filename,'(a,i2.2,a,i2.2,a)')"./test1/",mpi_size,"/Test",mype,".txt"!mype is mpi rank, adaptive output filename
 
  !----------Test omp
  !writing all the data in their files
- open(1,file=filename)
+ !open(1,file=filename)
  !------------
  
  
  !omp parallel
  !omp single
- call system_clock(count_rate=counter1)
- call system_clock(unix_time_now1)
+ !call system_clock(count_rate=counter1)
+ !call system_clock(unix_time_now1)
  unix_time_begin1=unix_time_now1
  unix_time_last_dump1=unix_time_begin1
 
@@ -86,8 +86,8 @@
  !call timing
  
  !----------Test omp
- write(1,*) content
- close(1)
+ !write(1,*) content
+ !close(1)
  !------------
  call mpi_barrier(comm,error)
  call final_run_info
