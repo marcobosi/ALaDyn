@@ -775,7 +775,6 @@
  !=============================
  !===============================
  subroutine preplasma_multisp(nyh,xf0)
-
  integer,intent(in) :: nyh
  real(dp),intent(in) :: xf0
  integer :: p,ip
@@ -817,6 +816,7 @@
  allocate(zpt(nptz+1,6))
  allocate(wy(npty+1,6))
  allocate(wz(nptz+1,6))
+ allocate(wyz(npty,nptz,nsp))
  ypt=0.
  zpt=0.
  wy=1.
@@ -1161,6 +1161,7 @@
  allocate(zpt(nptz+1,6))
  allocate(wy(npty+1,6))
  allocate(wz(nptz+1,6))
+ allocate(wyz(npty,nptz,nsp))
  ypt=0.
  zpt=0.
  wy=1.
@@ -1509,6 +1510,7 @@
  allocate(zpt(nptz+1,7))
  allocate(wy(npty+1,7))
  allocate(wz(nptz+1,7))
+ allocate(wyz(npty,nptz,nsp))
  ypt=0.
  zpt=0.
  wy=1.
@@ -1843,6 +1845,7 @@
  allocate(zpt(nptz+1,8))
  allocate(wy(npty+1,8))
  allocate(wz(nptz+1,8))
+ allocate(wyz(npty,nptz,nsp))
  ypt=0.
  zpt=0.
  wy=1.
@@ -2228,6 +2231,7 @@
  allocate(wy(npty,2))
  allocate(zpt(nptz,2))
  allocate(wz(nptz,2))
+ allocate(wyz(npty,nptz,nsp))
  wy=1.
  wz=1.
  !==================

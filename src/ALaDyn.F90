@@ -124,7 +124,7 @@
   endif
  endif
  do while (tnow < tmax)
-
+!should i insert the sorting here? before the next evolution time-step
   call LP_run(tnow,dt_loc,iter,LPf_ord)
   if(P_tracking)then
    if(mod(iter,tkjump)==0)then
