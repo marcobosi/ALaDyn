@@ -32,6 +32,51 @@
  ! MOVING WINDOW SECTION
  !=============================
  contains
+
+ subroutine c_sort(sp_loc,pt,p_count,np,i2,j2,k2,xm,ym,zm)
+ implicit none
+ type(species),intent(inout)::sp_loc
+ integer,intent(in)::np,i2,j2,k2
+ real,intent(inout)::pt(:,:)
+ integer,intent(inout)::p_count(:)
+ integer::n,M,n1,n2,n3,kk
+ real,intent(in)::xm,ym,zm
+ n1=i2-2
+ n2=j2-2
+ M=size(p_count)-1!grid size linearized
+ p_count=0
+ select case(curr_ndim)
+ case(2)
+  do n=1,np!counting particles per cell
+   kk=1+int(dx_inv*(pt(n,1)-xm))+int(dy_inv*(pt(n,2)-ym))*n1
+   p_count(kk)=p_count(kk)+1
+  end do
+  do kk=2,M!partial sum
+   p_count(kk)=p_count(kk)+p_count(kk-1)
+  end do
+  do n=1,np
+   kk=1+int(dx_inv*(sp_loc%part(n,1)-xm))+int(dy_inv*(sp_loc%part(n,2)-ym))*n1
+   pt(p_count(kk),:)=sp_loc%part(n,:)
+   p_count(kk)=p_count(kk)-1
+  end do
+ case(3)
+  n3=k2-2
+  do n=1,np!counting particles per cell
+   kk=1+int(dx_inv*(pt(n,1)-xm))+int(dy_inv*(pt(n,2)-ym))*n1+int(dz_inv*(pt(n,3)-zm))*n1*n2
+   p_count(kk)=p_count(kk)+1
+  end do
+  do kk=2,M!partial sum
+   p_count(kk)=p_count(kk)+p_count(kk-1)
+  end do
+  do n=1,np!placement in array
+   kk=1+int(dx_inv*(sp_loc%part(n,1)-xm))+int(dy_inv*(sp_loc%part(n,2)-ym))*n1+int(dz_inv*(sp_loc%part(n,3)-zm))*n1*n2
+   pt(p_count(kk),:)=sp_loc%part(n,:)
+   p_count(kk)=p_count(kk)-1
+  end do
+ end select
+ sp_loc%part=pt
+ end subroutine c_sort
+
  subroutine sort_particles(sp_loc,pt,&
   np,i2,j2,k2,xm,ym,zm)
  type(species),intent(inout) :: sp_loc
