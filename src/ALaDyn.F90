@@ -57,8 +57,8 @@
  
  !omp parallel
  !omp single
- !call system_clock(count_rate=counter1)
- !call system_clock(unix_time_now1)
+ call system_clock(count_rate=counter1)
+ call system_clock(unix_time_now1)
  unix_time_begin1=unix_time_now1
  unix_time_last_dump1=unix_time_begin1
 
