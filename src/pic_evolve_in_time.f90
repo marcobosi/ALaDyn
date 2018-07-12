@@ -26,11 +26,15 @@
  use particles
  use grid_fields
  use ionize
-
  implicit none
  !===============================
  ! MOVING WINDOW SECTION
  !=============================
+
+
+!array with number particles before cells
+ integer::p_count(:,:)
+ allocate(p_count(nsp,nx_loc+nx_loc*(ny_loc-1)+nx_loc*ny_loc*(nz_loc-1))
  contains
 
  subroutine c_sort(sp_loc,pt,p_count,np,i2,j2,k2,xm,ym,zm)
@@ -1263,6 +1267,8 @@
  !curr_clean
  if(Part)then
   do ic=1,nsp_run
+   !================== sorting
+   call c_sort(spec(ic),pt,p_count,np,i2,j2,k2,xm,ym,zm)
    np=loc_npart(imody,imodz,imodx,ic)
    Ltz=Lorentz_fact(ic)
    if(np >0)then
