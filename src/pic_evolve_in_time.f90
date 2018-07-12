@@ -33,7 +33,6 @@
 
 
 !array with number particles before cells
- integer,allocatable::p_count(:,:)
  contains
 
  subroutine c_sort(sp_loc,pt,p_count,np,i2,j2,k2,xm,ym,zm)
@@ -1267,7 +1266,7 @@
  if(Part)then
   do ic=1,nsp_run
    !================== sorting
-   call c_sort(spec(ic),ebfp,p_count(ic),np,i2,j2,k2,xm,ym,zm)
+   call c_sort(spec(ic),ebfp,part_in_grid(ic),np,i2,j2,k2,xm,ym,zm)
    np=loc_npart(imody,imodz,imodx,ic)
    Ltz=Lorentz_fact(ic)
    if(np >0)then
