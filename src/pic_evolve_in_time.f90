@@ -43,6 +43,7 @@
  integer,intent(inout)::p_count(:)
  integer::n,M,n1,n2,n3,kk
  real,intent(in)::xm,ym,zm
+ pt(1:np,1:3)=sp_loc%part(:,1:3)
  n1=i2-2
  n2=j2-2
  M=size(p_count)-1!grid size linearized
@@ -1265,9 +1266,9 @@
  !curr_clean
  if(Part)then
   do ic=1,nsp_run
+   np=loc_npart(imody,imodz,imodx,ic)
    !================== sorting
    call c_sort(spec(ic),ebfp,part_in_grid(ic,:),np,i2,j2,k2,xm,ym,zm)
-   np=loc_npart(imody,imodz,imodx,ic)
    Ltz=Lorentz_fact(ic)
    if(np >0)then
     !==============
