@@ -34,7 +34,6 @@
 
 !array with number particles before cells
  integer,allocatable::p_count(:,:)
- allocate(p_count(nsp,nx_loc+nx_loc*(ny_loc-1)+nx_loc*ny_loc*(nz_loc-1)))
  contains
 
  subroutine c_sort(sp_loc,pt,p_count,np,i2,j2,k2,xm,ym,zm)

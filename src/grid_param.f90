@@ -59,7 +59,7 @@
   n2_targ,pml_sz,npey,npez,npex
  integer :: n_loc,nyt_loc,nyt_res,nzt_loc,nzt_res,nyt_hres,nzt_hres
  integer :: p
-
+ allocate(p_count(nsp,nx_loc+nx_loc*(ny_loc-1)+nx_loc*ny_loc*(nz_loc-1)))!for counting sort
  allocate(loc_ygrid(0:npey-1),loc_zgrid(0:npez-1))
  allocate(loc_rgrid(0:npey-1),loc_xgrid(0:npex-1))
  allocate(x(n1+1),xw(n1+1),dx1(n1+1),y(n2+1),z(n3+1),dy1(n2+1),dz1(n3+1))
