@@ -4570,6 +4570,7 @@
  !segnalino=segnalino+1
  if(nfield <6)return
  if(ndim==3)then
+  !omp parallel do default(shared) private(j,jj,i,ii,k,kk,sdhx,sdhy,sdhz)
   do k=k1,k2
    kk=k-2
    sdhz=loc_zg(kk,4,imodz)*aphz
@@ -4593,8 +4594,10 @@
     end do
    end do
   end do
+  !omp end parallel do
  else
   k=1
+  !omp parallel do default(shared) private(j,jj,i,ii,sdhy,sdhx)
   do j=j1,j2
    jj=j-2
    sdhy=loc_yg(jj,4,imody)*aphy
@@ -4611,6 +4614,7 @@
      sdhx*(ef(i+2,j,k,3)-ef(i-1,j,k,3))
    end do
   end do
+  !omp end parallel do
  endif
  !================== interior domains
  end subroutine rotE
@@ -4662,6 +4666,7 @@
  !omp single
  if(nfield <6)return
  if(ndim==3)then
+  !omp parallel do default(shared) private(j,jj,i,ii,k,kk,sdy,sdx,sdz)
   do k=k1,k2
    kk=k-2
    sdz=aphz*loc_zg(kk,3,imodz)
@@ -4686,8 +4691,10 @@
     end do
    end do
   end do
+  !omp end parallel do
  else
   k=1
+  !omp parallel do default(shared) private(j,jj,i,ii,sdy,sdx)
   do j=j1,j2
    jj=j-2
    sdy=aphy*loc_yg(jj,3,imody)
@@ -4705,6 +4712,7 @@
                 sdx*(ef(i+1,j,k,5)-ef(i-2,j,k,5))
    end do
   end do
+  !omp end parallel do
  endif
  end subroutine rotB
  !=====================================
