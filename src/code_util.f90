@@ -39,6 +39,9 @@
  real(dp) :: mem_psize_max,dump_t0,dump_t1
  real(dp) :: unix_time_begin, unix_time_now
  real(dp) :: time_interval_dumps, unix_time_last_dump
+ !------------MULTITHREADING TIME
+ !integer(kind=8)::unix_time_begin1, unix_time_now1,counter1,unix_time_last_dump1
+ !------------
  real(dp) :: gamma_cut_min,weights_cut_min,weights_cut_max
  logical :: Part,part_dcmp,cmp,test,Stretch,Hybrid
  logical :: Lp_active,Lp_inject,Plane_wave,Lin_lp,Circ_lp,Relativistic,Envelope,Ions,Beam,Pbeam,Two_color

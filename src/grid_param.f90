@@ -47,6 +47,9 @@
  real(dp) :: aph,L_s,Lx_s,dxi,dyi,dzi,sy_rat,sz_rat,sx_rat
  integer :: loc_ygr_max,loc_zgr_max,loc_xgr_max
 
+ !sorting grid
+ integer,allocatable::part_in_grid(:,:)
+
  !--------------------------
 
  contains
@@ -59,6 +62,7 @@
   n2_targ,pml_sz,npey,npez,npex
  integer :: n_loc,nyt_loc,nyt_res,nzt_loc,nzt_res,nyt_hres,nzt_hres
  integer :: p
+ allocate(part_in_grid(nsp,n1_loc*n2_loc*n3_loc))!for counting sort
 
  allocate(loc_ygrid(0:npey-1),loc_zgrid(0:npez-1))
  allocate(loc_rgrid(0:npey-1),loc_xgrid(0:npex-1))

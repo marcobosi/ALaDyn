@@ -47,6 +47,21 @@
 
  call start
 
+ 
+ !----------------TEST OUTPUT OMP
+ !allocate(content(460))
+ !write(filename,'(a,i2.2,a,i2.2,a)')"./test1/",mpi_size,"/Test",mype,".txt"!mype is mpi rank, adaptive output filename
+
+ !----------Test omp
+ !writing all the data in their files
+ !open(1,file=filename)
+ !call system_clock(count_rate=counter1)
+ !call system_clock(unix_time_now1)
+ !unix_time_begin1=unix_time_now1
+ !unix_time_last_dump1=unix_time_begin1
+ !------------
+
+
  call cpu_time(unix_time_now)
  unix_time_begin=unix_time_now
  unix_time_last_dump=unix_time_begin
@@ -473,7 +488,9 @@
    write(6,'(a10,i6,a10,e11.4,a10,e11.4)') 'iter = ',iter,' t = ',tnow,' dt = ',dt_loc
    call tot_num_part(nptot_global)
    call cpu_time(unix_time_now)
+   !call system_clock(unix_time_now1)!systemclock is for openmp multithreading
    write(6,'(a16,f12.3,a10,i15)')' Time elapsed = ',unix_time_now-unix_time_begin,', nptot = ', nptot_global
+   !write(6,'(a,es9.2)')"tempo", real(unix_time_now1-unix_time_begin1)/real(counter1)
    if(prl)then
     if(Part)then
      write(6,'(a21,i10,a1,i10)')' part min/max distr. ',np_min,' ',np_max

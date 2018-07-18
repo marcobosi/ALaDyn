@@ -26,11 +26,22 @@
  use fstruct_data
  use all_param
  use parallel
+#ifdef _OPENMP
+ use OMP_LIB
+#endif
 
  implicit none
  real(dp),allocatable :: ww(:),ww0(:,:),sf1(:),sf2(:),wr(:,:),wl(:,:),var(:,:)
  real(dp) :: sigm_opt
  real(dp) :: mat_env_coeff(5,5)
+ 
+ !----------------TEST OUTPUT OMP
+! character (len=10),allocatable::content(:)!one because it has the execution time of the loop it has always the same number and relies on total time
+! character (len=30)::filename
+! integer::segnalino=1
+ !------------
+ 
+
  contains
 
  subroutine w_alloc(opt_der)
@@ -4519,11 +4530,23 @@
    end do
   return
  endif
+
  !=================================
- do k=k1,k2
-  do j=j1,j2
-   jj=j-2
-   sdhy=loc_yg(jj,4,imody)*aphy
+ !call system_clock(count_rate=rate)
+ !omp parallel
+ !print*,OMP_GET_THREAD_NUM(),OMP_GET_NUM_THREADS()
+ !omp end parallel
+ !call cpu_time(t1)
+ !call system_clock(it1)
+ !omp end single
+ !omp parallel do default(shared) private(j,jj,i,ii,k,sdhy,sdhx) schedule(static,8)
+ !omp do private(j,jj,i,ii,k,sdhy,sdhx) schedule(static,8)
+ do j=j1,j2
+  !print*,OMP_GET_THREAD_NUM(),OMP_GET_NUM_THREADS()!OMP_GET_MAX_THREADS(),
+  !print*,omp_in_parallel()
+  jj=j-2
+  sdhy=loc_yg(jj,4,imody)*aphy
+  do k=k1,k2
    do i=i1,n1p
     ii=i-2
     sdhx=aph1*loc_xg(ii,4,imodx)
@@ -4539,8 +4562,19 @@
     end do
    end do
   end do
+ !omp end parallel do
+ !omp end do
+ !omp single
+ !call cpu_time(t2)
+ !call system_clock(it2)
+ !print*,k2,k1,(j2-j1),(j2-j1)*(n1p-i1)
+ !print*,t2-t1,real(it2-it1)/real(rate),j1,j2
+ !write(content(segnalino),'(es8.2)') real(it2-it1)/real(rate)
+ !print*,segnalino
+ !segnalino=segnalino+1
  if(nfield <6)return
  if(ndim==3)then
+  !omp parallel do default(shared) private(j,jj,i,ii,k,kk,sdhx,sdhy,sdhz)
   do k=k1,k2
    kk=k-2
    sdhz=loc_zg(kk,4,imodz)*aphz
@@ -4564,8 +4598,10 @@
     end do
    end do
   end do
+  !omp end parallel do
  else
   k=1
+  !omp parallel do default(shared) private(j,jj,i,ii,sdhy,sdhx)
   do j=j1,j2
    jj=j-2
    sdhy=loc_yg(jj,4,imody)*aphy
@@ -4575,13 +4611,14 @@
     ef(i,j,k,4)=ef(i,j,k,4)-sdhy*(ef(i,j+1,k,3)-ef(i,j,k,3))
     ef(i,j,k,5)=ef(i,j,k,5)+sdhx*(ef(i+1,j,k,3)-ef(i,j,k,3))
    end do
-    do i=i1+1,n1p-1
-     ii=i-2
-     sdhx=aph2*loc_xg(ii,4,imodx)
-     ef(i,j,k,5)=ef(i,j,k,5)+&
+   do i=i1+1,n1p-1
+    ii=i-2
+    sdhx=aph2*loc_xg(ii,4,imodx)
+    ef(i,j,k,5)=ef(i,j,k,5)+&
       sdhx*(ef(i+2,j,k,3)-ef(i-1,j,k,3))
-    end do
    end do
+  end do
+  !omp end parallel do
  endif
  !================== interior domains
  end subroutine rotE
@@ -4608,10 +4645,12 @@
   end do
  endif
  !=========================== NDIM > 1
- do k=k1,k2
-  do j=j1,j2
-   jj=j-2
-   sdy=loc_yg(jj,3,imody)*aphy
+ !omp end single
+ !omp parallel do default(shared) private(j,jj,i,ii,k,sdy,sdx)
+ do j=j1,j2
+  jj=j-2
+  sdy=loc_yg(jj,3,imody)*aphy
+  do k=k1,k2
    do i=i1,n1p
     ii=i-2
     sdx=loc_xg(ii,3,imodx)*aph1
@@ -4627,7 +4666,10 @@
     end do
    end do
   end do
+ !omp end parallel do
+ !omp single
  if(nfield <6)return
+ !omp parallel do default(shared) private(j,jj,i,ii,k,kk,sdy,sdx,sdz)
  if(ndim==3)then
   do k=k1,k2
    kk=k-2
@@ -4653,8 +4695,10 @@
     end do
    end do
   end do
+  !omp end parallel do
  else
   k=1
+  !omp parallel do default(shared) private(j,jj,i,ii,sdy,sdx)
   do j=j1,j2
    jj=j-2
    sdy=aphy*loc_yg(jj,3,imody)
@@ -4672,6 +4716,7 @@
       sdx*(ef(i+1,j,k,5)-ef(i-2,j,k,5))
     end do
    end do
+   !omp end parallel do
  endif
  end subroutine rotB
  !=====================================
