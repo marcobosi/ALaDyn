@@ -65,6 +65,7 @@
   call BUNCH_cycle
  end select
 
+
  call timing
  call mpi_barrier(comm,error)
  call final_run_info
