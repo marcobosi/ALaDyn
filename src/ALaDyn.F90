@@ -123,19 +123,18 @@
    if(Pe0) call Impact_ioniz_data(atomic_number(nsp_ionz-1),z1_coll)
   endif
  endif
- do while (tnow < tmax)
-!should i insert the sorting here? before the next evolution time-step
+ do while (tnow < tmax) 
   call LP_run(tnow,dt_loc,iter,LPf_ord)
+  
   if(P_tracking)then
    if(mod(iter,tkjump)==0)then
     tk_ind=tk_ind+1
     call t_particles_collect(spec(1),tk_ind)
    endif
   endif
-
   call timing
   call data_out(jump)
-
+  
   if (ier /= 0) then
    call error_message
    exit

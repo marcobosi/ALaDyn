@@ -1268,7 +1268,7 @@
   do ic=1,nsp_run
    np=loc_npart(imody,imodz,imodx,ic)
    !================== sorting
-   call c_sort(spec(ic),ebfp,part_in_grid(ic,:),np,i2,j2,k2,xm,ym,zm)
+   !call c_sort(spec(ic),ebfp,part_in_grid(ic,:),np,i2,j2,k2,xm,ym,zm)
    Ltz=Lorentz_fact(ic)
    if(np >0)then
     !==============
