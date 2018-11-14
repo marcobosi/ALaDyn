@@ -27,9 +27,7 @@
 #if !defined (_CRESCO)
 #define ENABLE_MPI_LONG_INT
 #endif
-#ifdef (_OPENMP)
-        use OMP_LIB
-#endif
+!$      use OMP_LIB
  use fft_lib
  implicit none
  include 'mpif.h'
