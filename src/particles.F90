@@ -50,12 +50,14 @@
  case(1)       !y<0
   ys=str_ygrid%smin
   ximn=-dyi_inv*atan(sy_rat*(ym-ys))
+  !$omp parallel do default(shared) private(n,yp,yp_loc)
   do n=1,np
    yp=pt(n,ic1)
    yp_loc=ximn+dy_inv*(yp-ys)
    if(yp <= ys)yp_loc=ximn+dyi_inv*atan(sy_rat*(yp-ys))
    pt(n,ic1)= yp_loc
   end do
+  !$omp end parallel do
  case(2)       !y>0
   ys=str_ygrid%smax
   if(ym>ys)then
@@ -63,12 +65,14 @@
   else
    ximn=dy_inv*(ys-ym)
   endif
+  !$omp parallel do default(shared) private(n,yp,yp_loc)
   do n=1,np
    yp=pt(n,ic1)
    yp_loc=dy_inv*(yp-ym)
    if(yp > ys)yp_loc=ximn+dyi_inv*atan(sy_rat*(yp-ys))
    pt(n,ic1)= yp_loc
   end do
+  !$omp end parallel do
  end select
  end subroutine map2dy_part_sind
 
@@ -1216,6 +1220,7 @@
  select case(ndf)
  case(3)
   j2=1
+  !$omp parallel do default(shared) private(n,ap(:),xp1(:),xx,ih,sx,sx2,axh(:),i,ax1(:),i1,i2)
   do n=1,np
    ap(1:3)=zero_dp
    xp1(1)=sp_loc%part(n,1)    !the current particle positions
@@ -1245,9 +1250,11 @@
    end do
    pt(n,1:3)=ap(1:3)
   end do
+  !$omp end parallel do
   !========================
  case(6)
   j2=1
+  !$omp parallel do default(shared) private(n,ap(:),xp1(:),xx,ih,sx,sx2,axh(:),i,ax1(:),i1,i2)
   do n=1,np
    ap(1:6)=zero_dp
    xp1(1)=sp_loc%part(n,1)    !the current particle positions
@@ -1285,6 +1292,7 @@
    end do
    pt(n,1:6)=ap(1:6)
   end do
+  !$omp end parallel do
  end select
  end subroutine set_part1d_acc
  !===========================
@@ -1308,12 +1316,16 @@
  ax1=zero_dp;ay1=zero_dp
  axh=zero_dp;ayh=zero_dp
  dvol=zero_dp
+ !$omp parallel do default(shared) private(n)
  do n=1,np
   pt(n,1:3)=sp_loc%part(n,1:3)
  end do
+ !$omp end parallel do
  call set_local_positions(pt,1,np,s_ind,2,xmn,ymn,dvol)
  select case(ndf)
  case(3)
+  
+  !$omp parallel do default(shared) private(n,ap(:),xp1(:),ax1(:),axh(:),ay1(:),ayh(:),i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
   do n=1,np
    ap(1:3)=zero_dp
    xp1(1:2)=pt(n,1:2)
@@ -1340,9 +1352,11 @@
    end do
    pt(n,1:3)=ap(1:3)
   end do
+  !$omp end parallel do
   !==============
  case(6)
   !=====================
+  !$omp parallel do default(shared) private(n,ap(:),xp1(:),ax1(:),axh(:),ay1(:),ayh(:),i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
   do n=1,np
    ap(1:6)=zero_dp
    xp1(1:2)=pt(n,1:2)
@@ -1375,6 +1389,7 @@
    end do
    pt(n,1:6)=ap(1:6)
   end do
+  !$omp end parallel do
  end select
  !=====================
  end subroutine set_part2d_acc
@@ -1398,13 +1413,16 @@
  axh=zero_dp;ayh=zero_dp
  xp1=zero_dp
  sx=zero_dp
+ !$omp parallel do default(shared) private(n)
  do n=1,np
   pt(n,1:3)=sp_loc%part(n,1:3)
  end do
+ !$omp end parallel do
  call set_local_positions(pt,1,np,s_ind,2,xmn,ymn,sx)
 
  select case(ndf)     !Field components
  case(3)
+  !$omp parallel do default(shared) private(n,ap(:),xp1(:),ax1(:),axh(:),ay1(:),ayh(:),i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
   do n=1,np
    ap(1:3)=zero_dp
    xp1(1:2)=pt(n,1:2)
@@ -1435,9 +1453,11 @@
    end do
    pt(n,1:3)=ap(1:3)
   end do
+  !$omp end parallel do
   !==============
  case(6)
   !=====================
+  !$omp parallel do default(shared) private(n,ap(:),xp1(:),ax1(:),axh(:),ay1(:),ayh(:),i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
   do n=1,np
    ap(1:6)=zero_dp
    xp1(1:2)=pt(n,1:2)
@@ -1475,6 +1495,7 @@
    end do
    pt(n,1:6)=ap(1:6)
   end do
+  !$omp end parallel do
  end select
  !=====================
  end subroutine set_part2d_hcell_acc
@@ -4401,6 +4422,7 @@
  ay0=zero_dp
  select case(ndm)
  case(1)
+  !$omp parallel do default(private) shared(sp_loc,pt(:,:),jcurr(:,:,:,:),n0,np,pt(:,:),xmn,dp,dx_inv,charge,shx,zero_dp)
   do n=n0,np
    xp1(1:2)=sp_loc%part(n,1:2) !x-new  t^(n+1)
    xp0(1:2)=pt(n,3:4)             !x-old  t^n
@@ -4455,9 +4477,11 @@
     jcurr(i2,1,1,2)=jcurr(i2,1,1,2)+vyp*ax1(i1)
    end do
   end do
+  !$omp end parallel do
   !======================
  case(2)
   if(njc==2)then            !Two current components
+   !$omp parallel do default(shared) private(n,wgh_cmp,wght)
    do n=1,np
     pt(n,1:2)=sp_loc%part(n,1:2) !x-y-new  t^(n+1)
     pt(n,1)=dx_inv*(pt(n,1)-xmn)
@@ -4466,16 +4490,20 @@
     wght=charge*wgh
     pt(n,5)=wght
    end do
+   !$omp end parallel do
    if(n_st==0)then
+    !$omp parallel do default(shared) private(n)
     do n=n0,np
      pt(n,2)=dy_inv*(pt(n,2)-ymn)
      pt(n,4)=dy_inv*(pt(n,4)-ymn)
     end do
+    !$omp end parallel do
    else
     call map2dy_part_sind(np,n_st,2,ymn,pt)
     call map2dy_part_sind(np,n_st,4,ymn,pt)
    endif
 !========================
+   !$omp parallel do default(private) shared(n0,np,pt(:,:),sp,dp,shx,zero_dp,shy,jcurr(:,:,:,:))
    do n=n0,np
     xp1(1:2)=pt(n,1:2)        !x-y  -new
     xp0(1:2)=pt(n,3:4)        !x-y  -old
@@ -4571,8 +4599,10 @@
      end do
     end do
    end do
+   !$omp end parallel do
   endif
   if(njc==3)then  !Three currents conditions in 2D grid
+   !$omp parallel do default(shared) private(n,wgh_cmp,wght)
    do n=n0,np
     pt(n,1:3)=sp_loc%part(n,1:3) !x-y-z -new  t^(n+1)
     pt(n,1)=dx_inv*(pt(n,1)-xmn)
@@ -4581,16 +4611,20 @@
     wght=charge*wgh
     pt(n,7)=wght
    end do
+   !$omp end parallel do
    if(n_st==0)then
+    !$omp parallel do default(shared) private(n)
     do n=n0,np
      pt(n,2)=dy_inv*(pt(n,2)-ymn)  !loc y new
      pt(n,5)=dy_inv*(pt(n,5)-ymn)  !loc y-old
     end do
+    !$omp end parallel do
    else
     call map2dy_part_sind(np,n_st,2,ymn,pt)
     call map2dy_part_sind(np,n_st,5,ymn,pt)
    endif
 !==============================
+   !$omp parallel do default(private) shared(n0,np,pt(:,:),sp,shx,dp,zero_dp,shy,jcurr(:,:,:,:))
    do n=n0,np
     xp1(1:3)=pt(n,1:3)                !increments xyz-new
     xp0(1:3)=pt(n,4:6)              !increments xyz z-old
@@ -4711,6 +4745,7 @@
      end do
     end do
    end do
+   !$omp end parallel do
   endif
  end select
  !-----------------------

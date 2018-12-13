@@ -1093,6 +1093,7 @@
  select case(curr_ndim)
  case(2)
   ch=5
+  !$omp parallel do default(shared) private(p,pp(:),efp(:),vp(:),gam02,b2,gam2,gam,vph(:))
   do p=n0,np
    pp(1:2)=sp_loc%part(p,3:4)  !p_{n-1/2}
    efp(1:3)=alp*pt(p,1:3)         !q*Lfact*(Ex,Ey,Bz)*Dt/2
@@ -1119,8 +1120,10 @@
    pt(p,1:2)=vp(1:2)                      !stores DT*V^{n+1/2}
    sp_loc%part(p,1:2)=sp_loc%part(p,1:2)+vp(1:2) !new positions
   end do
+  !$omp end parallel do
  case(3)
   ch=7
+  !$omp parallel do default(shared) private(p,pp(:),efp(:),vp(:),bb(:),gam02,b2,bv,gam2,gam,vph(:))
   do p=n0,np
    pp(1:3)=sp_loc%part(p,4:6)
    efp(1:6)=alp*pt(p,1:6)      !q*Lfact*(E,B) on p-th-particle
@@ -1150,19 +1153,24 @@
    pt(p,1:3)=vp(1:3)                  !stores dt*V
    sp_loc%part(p,1:3)=sp_loc%part(p,1:3)+vp(1:3) !new positions
   end do
+  !$omp end parallel do
  end select
  !====================
  if(iform <2)then
   !old charge stored for charge preserving schemes
+  !$omp parallel do default(shared) private(p)
   do p=n0,np
    pt(p,ch)=sp_loc%part(p,ch)
   end do
+  !$omp end parallel do
  endif
  if(Comoving)then
+  !$omp parallel do default(shared) private(p)
   do p=n0,np
    sp_loc%part(p,1)=sp_loc%part(p,1)-dt_lp*vb
    pt(p,1)=pt(p,1)-dt_lp*vb
   end do
+  !$omp end parallel do
  endif
  end subroutine lpf_momenta_and_positions
  !=============================

@@ -4546,23 +4546,28 @@
  !============================
  if(ndim==1)then
   k=1;j=1
+  !$omp parallel do default(shared) private(i,ii,sdhx)
   do i=i1,n1p
    ii=i-2
    sdhx=aph1*loc_xg(ii,4,imodx)
    ef(i,j,k,nfield)=ef(i,j,k,nfield)-&
     sdhx*(ef(i+1,j,k,2)-ef(i,j,k,2))
   end do
+  !$omp end parallel do
+   !$omp parallel do default(shared) private(i,ii,sdhx)
    do i=i1+1,n1p-1
     ii=i-2
     sdhx=aph2*loc_xg(ii,4,imodx)
     ef(i,j,k,nfield)=ef(i,j,k,nfield)-&
      sdhx*(ef(i+2,j,k,2)-ef(i-1,j,k,2))
    end do
+   !$omp end parallel do
   return
  endif
  !=================================
- do k=k1,k2
-  do j=j1,j2
+ !$omp parallel do default(shared) private(k,j,jj,sdhy,i,ii,sdhx)
+ do j=j1,j2
+  do k=k1,k2
    jj=j-2
    sdhy=loc_yg(jj,4,imody)*aphy
    do i=i1,n1p
@@ -4580,8 +4585,10 @@
     end do
    end do
   end do
+  !$omp parallel end do
  if(nfield <6)return
  if(ndim==3)then
+  !$omp parallel do default(shared) private(k,kk,j,jj,i,ii,sdhz,sdhy,sdhx)
   do k=k1,k2
    kk=k-2
    sdhz=loc_zg(kk,4,imodz)*aphz
@@ -4605,8 +4612,10 @@
     end do
    end do
   end do
+  !$omp end parallel do
  else
   k=1
+  !$omp parallel do default(shared) private(j,jj,sdhy,i,ii,sdhx)
   do j=j1,j2
    jj=j-2
    sdhy=loc_yg(jj,4,imody)*aphy
@@ -4623,6 +4632,7 @@
       sdhx*(ef(i+2,j,k,3)-ef(i-1,j,k,3))
     end do
    end do
+   !$omp end parallel do
  endif
  !================== interior domains
  end subroutine rotE
@@ -4642,15 +4652,18 @@
  aph2=aphx*se_coeff(2)
  if(ndim==1)then
   k=1;j=1
+  !$omp parallel do default(shared) private(i,ii,sdx)
   do i=i1,n1p
    ii=i-2
    sdx=loc_xg(ii,3,imodx)*aphx
    ef(i,j,k,2)=ef(i,j,k,2)-sdx*(ef(i,j,k,nfield)-ef(i-1,j,k,nfield))
   end do
+  !$end parallel do
  endif
  !=========================== NDIM > 1
- do k=k1,k2
-  do j=j1,j2
+ !$omp parallel do default(shared) private(j,k,jj,i,ii,sdy,sdx)
+ do j=j1,j2
+  do k=k1,k2
    jj=j-2
    sdy=loc_yg(jj,3,imody)*aphy
    do i=i1,n1p
@@ -4668,8 +4681,10 @@
     end do
    end do
   end do
+  !$end parallel do
  if(nfield <6)return
  if(ndim==3)then
+  !$omp parallel do default(shared) private(k,kk,sdz,j,jj,sdy,i,ii,sdx)
   do k=k1,k2
    kk=k-2
    sdz=aphz*loc_zg(kk,3,imodz)
@@ -4694,8 +4709,10 @@
     end do
    end do
   end do
+  !$omp end parallel do
  else
   k=1
+  !$omp parallel do default(shared) private(j,jj,sdy,i,ii,sdx)
   do j=j1,j2
    jj=j-2
    sdy=aphy*loc_yg(jj,3,imody)
@@ -4713,6 +4730,7 @@
       sdx*(ef(i+1,j,k,5)-ef(i-2,j,k,5))
     end do
    end do
+   !$omp end parallel do
  endif
  end subroutine rotB
  !=====================================
