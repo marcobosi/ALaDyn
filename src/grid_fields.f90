@@ -4585,7 +4585,7 @@
     end do
    end do
   end do
-  !$omp parallel end do
+  !$omp end parallel do
  if(nfield <6)return
  if(ndim==3)then
   !$omp parallel do default(shared) private(k,kk,j,jj,i,ii,sdhz,sdhy,sdhx)

@@ -1220,7 +1220,7 @@
  select case(ndf)
  case(3)
   j2=1
-  !$omp parallel do default(shared) private(n,ap(:),xp1(:),xx,ih,sx,sx2,axh(:),i,ax1(:),i1,i2)
+  !$omp parallel do default(shared) private(n,ap,xp1,xx,ih,sx,sx2,axh,i,ax1,i1,i2)
   do n=1,np
    ap(1:3)=zero_dp
    xp1(1)=sp_loc%part(n,1)    !the current particle positions
@@ -1254,7 +1254,7 @@
   !========================
  case(6)
   j2=1
-  !$omp parallel do default(shared) private(n,ap(:),xp1(:),xx,ih,sx,sx2,axh(:),i,ax1(:),i1,i2)
+  !$omp parallel do default(shared) private(n,ap,xp1,xx,ih,sx,sx2,axh,i,ax1,i1,i2)
   do n=1,np
    ap(1:6)=zero_dp
    xp1(1)=sp_loc%part(n,1)    !the current particle positions
@@ -1325,7 +1325,7 @@
  select case(ndf)
  case(3)
   
-  !$omp parallel do default(shared) private(n,ap(:),xp1(:),ax1(:),axh(:),ay1(:),ayh(:),i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
+  !$omp parallel do default(shared) private(n,ap,xp1,ax1,axh,ay1,ayh,i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
   do n=1,np
    ap(1:3)=zero_dp
    xp1(1:2)=pt(n,1:2)
@@ -1356,7 +1356,7 @@
   !==============
  case(6)
   !=====================
-  !$omp parallel do default(shared) private(n,ap(:),xp1(:),ax1(:),axh(:),ay1(:),ayh(:),i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
+  !$omp parallel do default(shared) private(n,ap,xp1,ax1,axh,ay1,ayh,i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
   do n=1,np
    ap(1:6)=zero_dp
    xp1(1:2)=pt(n,1:2)
@@ -1422,7 +1422,7 @@
 
  select case(ndf)     !Field components
  case(3)
-  !$omp parallel do default(shared) private(n,ap(:),xp1(:),ax1(:),axh(:),ay1(:),ayh(:),i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
+  !$omp parallel do default(shared) private(n,ap,xp1,ax1,axh,ay1,ayh,i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
   do n=1,np
    ap(1:3)=zero_dp
    xp1(1:2)=pt(n,1:2)
@@ -1457,7 +1457,7 @@
   !==============
  case(6)
   !=====================
-  !$omp parallel do default(shared) private(n,ap(:),xp1(:),ax1(:),axh(:),ay1(:),ayh(:),i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
+  !$omp parallel do default(shared) private(n,ap,xp1,ax1,axh,ay1,ayh,i,j,ih,jh,j1,j2,dvol,i1,i2,dvol1)
   do n=1,np
    ap(1:6)=zero_dp
    xp1(1:2)=pt(n,1:2)
@@ -4422,7 +4422,7 @@
  ay0=zero_dp
  select case(ndm)
  case(1)
-  !$omp parallel do default(private) shared(sp_loc,pt(:,:),jcurr(:,:,:,:),n0,np,pt(:,:),xmn,dp,dx_inv,charge,shx,zero_dp)
+  !$omp parallel do default(private) shared(sp_loc,pt,jcurr,n0,np,pt,xmn,dp,dx_inv,charge,shx,zero_dp)
   do n=n0,np
    xp1(1:2)=sp_loc%part(n,1:2) !x-new  t^(n+1)
    xp0(1:2)=pt(n,3:4)             !x-old  t^n
@@ -4503,7 +4503,7 @@
     call map2dy_part_sind(np,n_st,4,ymn,pt)
    endif
 !========================
-   !$omp parallel do default(private) shared(n0,np,pt(:,:),sp,dp,shx,zero_dp,shy,jcurr(:,:,:,:))
+   !$omp parallel do default(private) shared(n0,np,pt,sp,dp,shx,zero_dp,shy,jcurr)
    do n=n0,np
     xp1(1:2)=pt(n,1:2)        !x-y  -new
     xp0(1:2)=pt(n,3:4)        !x-y  -old
@@ -4624,7 +4624,7 @@
     call map2dy_part_sind(np,n_st,5,ymn,pt)
    endif
 !==============================
-   !$omp parallel do default(private) shared(n0,np,pt(:,:),sp,shx,dp,zero_dp,shy,jcurr(:,:,:,:))
+   !$omp parallel do default(private) shared(n0,np,pt,sp,shx,dp,zero_dp,shy,jcurr)
    do n=n0,np
     xp1(1:3)=pt(n,1:3)                !increments xyz-new
     xp0(1:3)=pt(n,4:6)              !increments xyz z-old

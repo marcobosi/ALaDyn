@@ -1746,15 +1746,18 @@
  pout=0
  if(ib==2)then
   dxp=xr-xl
+  !$omp parallel do default(shared) private(p,xp)
   do p=1,np
    xp=loc_sp%part(p,cin)
    if(xp<xl)loc_sp%part(p,cin)=xp+dxp
    xp=loc_sp%part(p,cin)
    if(xp>xr)loc_sp%part(p,cin)=xp-dxp
   end do
+  !$omp end parallel do
   return
  endif
  if(ib==1)then
+  !$omp parallel do default(shared) private(p,xp)
   do p=1,np
    xp=loc_sp%part(p,cin)
    if(xp>xr)then
@@ -1762,6 +1765,7 @@
     loc_sp%part(p,cin+ndm)=-loc_sp%part(p,cin+ndm)
    endif
   end do
+  !$omp end parallel do
   return
  endif
  do n=1,np
