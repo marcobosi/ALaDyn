@@ -4631,7 +4631,8 @@
    endif
 !==============================
    !$omp parallel do default(shared)&
-   !$omp& private(n,xp0,xp1,wght,vp,ax,i0,sx,sx2,ax0,ax1,axh,ih,ix0,ix1,i1,currx,axh0,axh1,i,j0,ay0,j,ay1,jh,iy0,iy1,ayh,curry,i2,j2)
+   !$omp& private(n,xp0,xp1,wght,vp,ax,i0,sx,sx2,ax0,ax1,axh,ih,ix0,ix1,&
+   !$omp& i1,currx,axh0,axh1,i,j0,ay0,j,ay1,jh,iy0,iy1,ayh,curry,i2,j2)
    do n=n0,np
     xp1(1:3)=pt(n,1:3)                !increments xyz-new
     xp0(1:3)=pt(n,4:6)              !increments xyz z-old
