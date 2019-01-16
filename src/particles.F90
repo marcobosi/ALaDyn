@@ -4422,7 +4422,7 @@
  ay0=zero_dp
  select case(ndm)
  case(1)
-  !$omp parallel do default(private) shared(sp_loc,pt,jcurr,n0,np,pt,xmn,dp,dx_inv,charge,shx,zero_dp)
+  !$omp parallel do default(shared) private(n,xp0,xp1,vp,wgh_cmp,wght,vyp,ax,i0,sx,sx2,ax0,i,ax1,axh,ih,i1,i2,currx)
   do n=n0,np
    xp1(1:2)=sp_loc%part(n,1:2) !x-new  t^(n+1)
    xp0(1:2)=pt(n,3:4)             !x-old  t^n
@@ -4464,6 +4464,7 @@
    ih=i0-1
    do i1=0,4
     i2=ih+i1
+    !$omp atomic
     jcurr(i2,1,1,1)=jcurr(i2,1,1,1)+currx(i1)
    end do
    !++++++++++++++
@@ -4472,8 +4473,10 @@
    !=============================
    do i1=0,2
     i2=i0+i1-1
+    !$omp atomic
     jcurr(i2,1,1,2)=jcurr(i2,1,1,2)+vyp*ax0(i1)
     i2=i+i1-1
+    !$omp atomic
     jcurr(i2,1,1,2)=jcurr(i2,1,1,2)+vyp*ax1(i1)
    end do
   end do
@@ -4503,7 +4506,8 @@
     call map2dy_part_sind(np,n_st,4,ymn,pt)
    endif
 !========================
-   !$omp parallel do default(private) shared(n0,np,pt,sp,dp,shx,zero_dp,shy,jcurr)
+   !$omp parallel do default(shared) private(n,wght,sx,sx2,i,i0,i1,i2,ih,ix0,ix1,iy0,iy1,j,j0,j1,j2,jh,ax,ax0,ax1,axh,ay0,ay1,ayh,xp0,xp1,currx,curry)
+
    do n=n0,np
     xp1(1:2)=pt(n,1:2)        !x-y  -new
     xp0(1:2)=pt(n,3:4)        !x-y  -old
@@ -4582,11 +4586,11 @@
     i=i-1
     i0=i0-1
     ih=i0-1
-
     do j1=iy0,iy1
      j2=jh+j1
      do i1=ix0,ix1
       i2=ih+i1
+      !$omp atomic
       jcurr(i2,j2,1,1)=jcurr(i2,j2,1,1)+ayh(j1)*currx(i1)
      end do
     end do
@@ -4595,6 +4599,7 @@
      j2=jh+j1
      do i1=ix0,ix1
       i2=ih+i1
+      !$omp atomic
       jcurr(i2,j2,1,2)=jcurr(i2,j2,1,2)+axh(i1)*curry(j1)
      end do
     end do
@@ -4624,7 +4629,7 @@
     call map2dy_part_sind(np,n_st,5,ymn,pt)
    endif
 !==============================
-   !$omp parallel do default(private) shared(n0,np,pt,sp,shx,dp,zero_dp,shy,jcurr)
+   !$omp parallel do default(shared) private(n,xp0,xp1,wght,vp,ax,i0,sx,sx2,ax0,ax1,axh,ih,ix0,ix1,i1,currx,axh0,axh1,i,j0,ay0,j,ay1,jh,iy0,iy1,ayh,curry,i2,j2)
    do n=n0,np
     xp1(1:3)=pt(n,1:3)                !increments xyz-new
     xp0(1:3)=pt(n,4:6)              !increments xyz z-old
@@ -4718,6 +4723,7 @@
      j2=jh+j1
      do i1=ix0,ix1
       i2=ih+i1
+      !$omp atomic
       jcurr(i2,j2,1,1)=jcurr(i2,j2,1,1)+ayh(j1)*currx(i1)
      end do
     end do
@@ -4726,6 +4732,7 @@
      j2=jh+j1
      do i1=ix0,ix1
       i2=ih+i1
+      !$omp atomic
       jcurr(i2,j2,1,2)=jcurr(i2,j2,1,2)+axh(i1)*curry(j1)
      end do
     end do
@@ -4735,12 +4742,14 @@
      dvol=ay0(j1)*vp(3)
      do i1=ix0,ix1
       i2=i1+ih
+      !$omp atomic
       jcurr(i2,j2,1,3)=jcurr(i2,j2,1,3)+axh0(i1)*dvol
      end do
      j2=j+j1
      dvol=ay1(j1)*vp(3)
      do i1=ix0,ix1
       i2=i1+ih
+      !$omp atomic
       jcurr(i2,j2,1,3)=jcurr(i2,j2,1,3)+axh1(i1)*dvol
      end do
     end do
