@@ -1093,7 +1093,7 @@
  select case(curr_ndim)
  case(2)
   ch=5
-  !$omp parallel do default(shared) private(p,pp(:),efp(:),vp(:),gam02,b2,gam2,gam,vph(:))
+  !$omp parallel do default(shared) private(p,pp,efp,vp,gam02,b2,gam2,gam,vph)
   do p=n0,np
    pp(1:2)=sp_loc%part(p,3:4)  !p_{n-1/2}
    efp(1:3)=alp*pt(p,1:3)         !q*Lfact*(Ex,Ey,Bz)*Dt/2
@@ -1123,7 +1123,7 @@
   !$omp end parallel do
  case(3)
   ch=7
-  !$omp parallel do default(shared) private(p,pp(:),efp(:),vp(:),bb(:),gam02,b2,bv,gam2,gam,vph(:))
+  !$omp parallel do default(shared) private(p,pp,efp,vp,bb,gam02,b2,bv,gam2,gam,vph)
   do p=n0,np
    pp(1:3)=sp_loc%part(p,4:6)
    efp(1:6)=alp*pt(p,1:6)      !q*Lfact*(E,B) on p-th-particle
