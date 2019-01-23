@@ -27,6 +27,7 @@
  use ionize
 
  implicit none
+ integer::conteggiosorting=0
  !===============================
  ! MOVING WINDOW SECTION
  !=============================
@@ -1273,7 +1274,10 @@
    if(np >0)then
     !==============
     !================== sorting
-    call c_sort(spec(ic),ebfp,part_in_grid(ic,:),np,i2,j2,k2,xm,ym,zm)
+    conteggiosorting=conteggiosorting+1
+    if(conteggiosorting>0)
+      call c_sort(spec(ic),ebfp,part_in_grid(ic,:),np,i2,j2,k2,xm,ym,zm)
+    endif
     !============
     call set_lpf_acc(ebf,spec(ic),ebfp,np,ndim,nfield,n_st,xm,ym,zm)
     call field_charge_multiply(spec(ic),ebfp,1,np,nfield)
